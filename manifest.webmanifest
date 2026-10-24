@@ -1,6 +1,6 @@
 {
-  "name": "아이디어 방",
-  "short_name": "아이디어 방",
+  "name": "생각의 방",
+  "short_name": "생각의 방",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
