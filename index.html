@@ -209,7 +209,7 @@ h1{font-family:var(--font-logo);font-weight:400;font-size:34px;line-height:1.1;m
 .place-chip .dot{flex:none;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent)}
 .place-chip svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .tools{min-height:48px;gap:6px;padding-bottom:8px}
-.ed{padding-bottom:42vh}
+.ed{padding-bottom:30vh}
 .crumb{display:block;border:0;background:transparent;padding:0 0 6px;color:var(--accent);font-family:var(--font-title);font-size:14px;font-weight:700;text-align:left;overflow-wrap:anywhere}
 #edTitle{display:block;width:100%;border:0;background:transparent;resize:none;outline:none;padding:0;margin:0 0 12px;color:var(--ink);
   font-family:var(--font-title);font-weight:700;font-size:28px;line-height:1.25;overflow:hidden}
@@ -389,6 +389,23 @@ body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:non
 .q-add{flex:none;width:92px;height:92px;border:1.5px dashed var(--line);border-radius:10px;background:transparent;color:var(--muted);font-size:13.5px;font-weight:600}
 .q-add.big{width:100%;height:132px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#FBF7EF;font-size:15px}
 .q-add-ic{font-size:30px;line-height:1;color:#B9A58C}
+
+/* ---------- round 5: editor layout ---------- */
+#editor{display:flex;flex-direction:column;overflow:hidden}
+#editor .bar{flex:none;position:relative}
+.ed-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.place-chip{max-width:calc(100% - 96px)}
+.menu{position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + 54px);right:max(12px,env(safe-area-inset-right,0px));min-width:180px;padding:6px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 34px -14px var(--shadow);display:grid}
+.menu button{border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:9px;font-size:15px;color:var(--ink)}
+.menu button:hover{background:var(--chip)}
+.menu button.danger{color:var(--danger)}
+.edtools{flex:none;display:flex;align-items:center;gap:2px;background:var(--navbg);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.tb{flex:none;width:44px;height:40px;border:0;border-radius:10px;background:transparent;color:var(--ink);display:grid;place-items:center}
+.tb:hover,.tb:active{background:var(--chip)}
+.tb svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tb.done{width:auto;padding:0 14px;font-size:15px;font-weight:600;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -432,23 +449,32 @@ body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:non
       <button class="btn icon ghost" data-act="ed-back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg></button>
       <button class="place-chip" id="edChip" data-act="ed-move"></button>
       <span class="sp"></span>
-      <button class="btn ghost" id="cornerBtn" data-act="corner" hidden>서랍 구석으로</button>
-      <button class="btn ghost danger" id="edRight" data-act="ed-trash">버리기</button>
-    </div>
-    <div class="bar-in tools" role="toolbar" aria-label="메모 도구">
-      <button class="btn tool" data-act="tool-c"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 5-6"/></svg>체크</button>
-      <button class="btn tool" data-act="tool-n"><svg viewBox="0 0 24 24"><path d="M5 5h2v6M5 11h4M5 14.5c0-1 .8-1.5 1.8-1.5S8.6 13.6 8.6 14.4c0 1.4-3.6 2.6-3.6 4.6h3.8M12 7h8M12 17h8"/></svg>번호</button>
-      <button class="btn tool" data-act="tool-b"><svg viewBox="0 0 24 24"><circle cx="6" cy="8" r="1.5"/><circle cx="6" cy="16" r="1.5"/><path d="M11 8h9M11 16h9"/></svg>점</button>
-      <button class="btn tool" data-act="tool-hr"><svg viewBox="0 0 24 24"><path d="M3 12h18"/></svg>구분선</button>
-      <button class="btn tool" id="toolPh" data-act="tool-ph" hidden><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg>사진</button>
+      <button class="btn icon ghost" id="moreBtn" data-act="more" aria-label="더 보기" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18.5" cy="12" r="1.4"/></svg></button>
     </div>
   </div>
-  <div class="layer-in ed">
-    <button class="crumb" id="edCrumb" data-act="crumb" hidden></button>
-    <textarea id="edTitle" rows="1" placeholder="제목" aria-label="제목"></textarea>
-    <div class="phs" id="edPhotos" hidden></div>
-    <div id="edBlocks"></div>
-    <section id="edKids" hidden aria-label="생각 조각"><div class="kid-list" id="edKidList"></div></section>
+  <div id="moreMenu" class="menu" hidden role="menu" aria-label="메모 메뉴">
+    <button role="menuitem" data-act="ed-move">다른 곳으로 옮기기</button>
+    <button role="menuitem" id="mCorner" data-act="corner">서랍 구석으로</button>
+    <button role="menuitem" id="mRestore" data-act="ed-restore">다시 꺼내기</button>
+    <button role="menuitem" id="mTrash" class="danger" data-act="ed-trash">버리기</button>
+  </div>
+  <div class="ed-scroll" id="edScroll">
+    <div class="layer-in ed">
+      <button class="crumb" id="edCrumb" data-act="crumb" hidden></button>
+      <textarea id="edTitle" rows="1" placeholder="제목" aria-label="제목"></textarea>
+      <div class="phs" id="edPhotos" hidden></div>
+      <div id="edBlocks"></div>
+      <section id="edKids" hidden aria-label="생각 조각"><div class="kid-list" id="edKidList"></div></section>
+    </div>
+  </div>
+  <div class="edtools" id="edTools" role="toolbar" aria-label="메모 도구">
+    <button class="tb" data-act="tool-c" aria-label="체크 목록" title="체크"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 5-6"/></svg></button>
+    <button class="tb" data-act="tool-n" aria-label="번호 목록" title="번호"><svg viewBox="0 0 24 24"><path d="M5 5h2v6M5 11h4M5 14.5c0-1 .8-1.5 1.8-1.5S8.6 13.6 8.6 14.4c0 1.4-3.6 2.6-3.6 4.6h3.8M12 7h8M12 17h8"/></svg></button>
+    <button class="tb" data-act="tool-b" aria-label="점 목록" title="점"><svg viewBox="0 0 24 24"><circle cx="6" cy="8" r="1.5"/><circle cx="6" cy="16" r="1.5"/><path d="M11 8h9M11 16h9"/></svg></button>
+    <button class="tb" data-act="tool-hr" aria-label="구분선 넣기" title="구분선"><svg viewBox="0 0 24 24"><path d="M3 12h18"/><path d="M7 7h10M7 17h10" opacity=".35"/></svg></button>
+    <button class="tb" id="toolPh" data-act="tool-ph" aria-label="사진 넣기" title="사진" hidden><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg></button>
+    <span class="sp"></span>
+    <button class="tb done" id="kbDone" data-act="kb-done" hidden>완료</button>
   </div>
 </section>
 
@@ -1142,7 +1168,7 @@ function openEditor(id,o={}){
   cur=JSON.parse(JSON.stringify(d));
   if(!Array.isArray(cur.blocks)||!cur.blocks.length)cur.blocks=[{t:'p',x:''}];
   if(!Array.isArray(cur.photos))cur.photos=[];
-  lastIdx=0;show('#editor');renderEditor();$('#editor').scrollTop=0;
+  lastIdx=0;closeMore();show('#editor');fitEditor();renderEditor();$('#edScroll').scrollTop=0;
   if(o.focus==='title')$('#edTitle').focus();
   if(o.flashKid)requestAnimationFrame(()=>{const b=$('.nbox[data-kid="'+o.flashKid+'"]');if(b){b.scrollIntoView({block:'center'});b.classList.add('flash');setTimeout(()=>b.classList.remove('flash'),1400)}});
 }
@@ -1152,13 +1178,11 @@ function renderHead(){
   if(!cur)return;
   $('#edChip').innerHTML='<span class="dot"><svg viewBox="0 0 24 24">'+(PIC[cur.place]||PIC.box)+'</svg></span>'+esc(placeLabel(cur))+'<svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg>';
   $('#edChip').setAttribute('aria-label','위치: '+placeLabel(cur)+'. 눌러서 옮기기');
-  const r=$('#edRight');
-  if(cur.place==='trash'){r.textContent='다시 꺼내기';r.dataset.act='ed-restore';r.className='btn'}
-  else{r.textContent='버리기';r.dataset.act='ed-trash';r.className='btn ghost danger'}
+  $('#mRestore').hidden=cur.place!=='trash';$('#mTrash').hidden=cur.place==='trash';
   const cr=$('#edCrumb'),p=cur.parent&&get(cur.parent);
   if(p&&p.place===cur.place){cr.hidden=false;cr.textContent='‘'+(titleOf(p)||'제목 없음')+'’의 생각 조각'}else cr.hidden=true;
   $('#toolPh').hidden=!canPhoto();
-  const cb=$('#cornerBtn');cb.hidden=!(cur.place==='drawer'&&!isKid(cur));cb.textContent=cur.corner?'앞으로 꺼내기':'서랍 구석으로';
+  const cb=$('#mCorner');cb.hidden=!(cur.place==='drawer'&&!isKid(cur));cb.textContent=cur.corner?'앞으로 꺼내기':'서랍 구석으로';
 }
 function saveCur(delay=500){if(cur)put(JSON.parse(JSON.stringify(cur)),delay)}
 function size(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
@@ -1482,10 +1506,12 @@ document.addEventListener('click',e=>{
     case 'gal':openGal(a.dataset.id);break;
     case 'gal-close':closeGal();break;
     case 'gal-open':{const id=galIds[galIdx];closeGal();if(id&&get(id)){edStack=[];cur=null;openEditor(id)}break}
-    case 'ed-back':edBack();break;
-    case 'ed-move':openMove();break;
-    case 'ed-trash':edTrash();break;
-    case 'ed-restore':if(cur){flushNow(cur.id);restore(cur.id);syncCur();toast('다시 꺼냈어요')}break;
+    case 'ed-back':closeMore();edBack();break;
+    case 'more':{const m=$('#moreMenu'),open=m.hidden;m.hidden=!open;$('#moreBtn').setAttribute('aria-expanded',String(open));break}
+    case 'kb-done':{const ae=document.activeElement;if(ae&&ae.blur)ae.blur();break}
+    case 'ed-move':closeMore();openMove();break;
+    case 'ed-trash':closeMore();edTrash();break;
+    case 'ed-restore':closeMore();if(cur){flushNow(cur.id);restore(cur.id);syncCur();toast('다시 꺼냈어요')}break;
     case 'crumb':if(cur&&cur.parent){const pid=cur.parent,kid=cur.id;leaveCur();cur=null;edStack=[];openEditor(pid,{flashKid:kid})}break;
     case 'tool-c':toggleType('c');break;
     case 'tool-n':toggleType('n');break;
@@ -1536,11 +1562,23 @@ document.addEventListener('click',e=>{
     case 'board-note':{const d=put(newDoc({place:'board',nc:Math.floor(Math.random()*4)}));openGal(d.id);setTimeout(()=>{const t=$('#gp-'+d.id);if(t)t.focus()},90);break}
     case 'tool-b':toggleType('b');break;
     case 'tool-hr':insertHr();break;
-    case 'corner':if(cur){cur.corner=!cur.corner;saveCur(0);renderHead();toast(cur.corner?'서랍 구석으로 밀어 넣었어요':'다시 앞으로 꺼냈어요')}break;
+    case 'corner':closeMore();if(cur){cur.corner=!cur.corner;saveCur(0);renderHead();toast(cur.corner?'서랍 구석으로 밀어 넣었어요':'다시 앞으로 꺼냈어요')}break;
   }
 });
 $('#room').addEventListener('keydown',e=>{const g=e.target.closest('[data-go]');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pressAndGo(g)}});
-$('#editor .tools').addEventListener('mousedown',e=>{if(e.target.closest('.tool'))e.preventDefault()});
+$('#edTools').addEventListener('mousedown',e=>{if(e.target.closest('.tb'))e.preventDefault()});
+/* the editor always fits the part of the screen the keyboard leaves, so the header and tool bar stay in view */
+function fitEditor(){
+  const ed=$('#editor'),vv=window.visualViewport;
+  if(!vv||ed.hidden){ed.style.top='';ed.style.height='';ed.style.bottom='';return}
+  ed.style.top=Math.max(0,vv.offsetTop)+'px';ed.style.height=vv.height+'px';ed.style.bottom='auto';
+}
+if(window.visualViewport){visualViewport.addEventListener('resize',fitEditor);visualViewport.addEventListener('scroll',fitEditor)}
+const edEl=$('#editor');
+edEl.addEventListener('focusin',e=>{if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)){$('#kbDone').hidden=false;setTimeout(fitEditor,60);setTimeout(fitEditor,350)}});
+edEl.addEventListener('focusout',()=>{setTimeout(()=>{if(!typing(edEl))$('#kbDone').hidden=true;fitEditor()},80)});
+function closeMore(){$('#moreMenu').hidden=true;$('#moreBtn').setAttribute('aria-expanded','false')}
+document.addEventListener('click',e=>{if(!$('#moreMenu').hidden&&!e.target.closest('#moreMenu,#moreBtn'))closeMore()},true);
 $('#edTitle').addEventListener('input',e=>{
   const t=e.target;
   if(t.value.includes('\n')){t.value=t.value.replace(/\n/g,'');cur.title=t.value;size(t);saveCur();focusBlock(0,0);return}
@@ -1600,6 +1638,7 @@ document.addEventListener('keydown',e=>{
   else if(!$('#lightbox').hidden)closeLB();
   else if(!$('#sheet').hidden)closeSheet();
   else if(!$('#gal').hidden)closeGal();
+  else if(!$('#moreMenu').hidden)closeMore();
   else if(!$('#editor').hidden)edBack();
   else if(!$('#search').hidden)hide('#search');
   else if(!$('#panel').hidden){panel=null;hide('#panel')}
