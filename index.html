@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Gaegu:wght@700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@800&text=%EC%83%9D%EA%B0%81%EC%9D%98%20%EB%B0%A9&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400&text=%EC%83%9D%EA%B0%81%EC%9D%98%20%EB%B0%A9&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
 <script src="config.js"></script>
 <style>
@@ -74,7 +74,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .hud{position:fixed;top:0;left:0;right:0;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none;
   padding-top:calc(env(safe-area-inset-top,0px) + 42px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .hud>*{pointer-events:auto}
-h1{font-family:var(--font-logo);font-weight:800;font-size:34px;line-height:1.1;margin:0;color:#3A332D;letter-spacing:-.02em}
+h1{font-family:var(--font-logo);font-weight:400;font-size:34px;line-height:1.1;margin:0;color:#3A332D;letter-spacing:-.01em}
 .dates{font-family:var(--font-mono);font-size:12px;color:#8A7D70;letter-spacing:.04em;margin-top:5px;font-variant-numeric:tabular-nums}
 .note{display:inline-block;margin:8px 0 0;font-size:12px;color:#6F6357;background:rgba(255,253,249,.8);border-radius:999px;padding:3px 10px}
 .round{width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;background:rgba(255,253,249,.92);color:#3A332D;box-shadow:0 6px 16px -8px rgba(90,65,40,.45)}
@@ -275,7 +275,7 @@ h1{font-family:var(--font-logo);font-weight:800;font-size:34px;line-height:1.1;m
 .auth{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(236,226,213,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
 .auth-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px 20px 14px;display:grid;gap:6px;box-shadow:0 24px 40px -24px var(--shadow)}
-.auth-card h2{font-family:var(--font-logo);font-weight:800;font-size:28px;line-height:1.2;margin:0}
+.auth-card h2{font-family:var(--font-logo);font-weight:400;font-size:28px;line-height:1.2;margin:0}
 .auth-card p{margin:0 0 8px;color:var(--muted);font-size:14px;text-wrap:balance}
 .auth-card label{font-size:13px;color:var(--muted);margin-top:4px}
 .auth-card input{font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
@@ -363,6 +363,32 @@ body.carrying .fab{opacity:0;pointer-events:none}
   box-shadow:0 14px 28px -10px rgba(60,40,20,.5);font-family:var(--font-title);font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .drag-hint{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:65;background:rgba(58,51,45,.9);color:#FFF8EF;font-size:13.5px;
   border-radius:999px;padding:9px 16px;pointer-events:none;white-space:nowrap}
+
+/* ---------- round 4 ---------- */
+body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:none!important}
+[data-drag-id],[data-drag-id] *{-webkit-user-drag:none;-webkit-touch-callout:none}
+[data-drag-id] img{pointer-events:none}
+.scrap{height:178px}
+.scrap.ph{padding:11px 10px 8px;gap:5px}
+.sc-photo{position:relative;display:block;flex:none;height:104px;background:#EEE8DF;border:4px solid #FFFFFF;box-shadow:0 2px 4px rgba(60,40,20,.15)}
+.sc-photo img{display:block;width:100%;height:100%;object-fit:cover}
+.cn{position:absolute;width:13px;height:13px;background:#8B6F55;opacity:.8}
+.cn.tl{top:-6px;left:-6px;clip-path:polygon(0 0,100% 0,0 100%)}
+.cn.tr{top:-6px;right:-6px;clip-path:polygon(0 0,100% 0,100% 100%)}
+.cn.bl{bottom:-6px;left:-6px;clip-path:polygon(0 0,0 100%,100% 100%)}
+.cn.br{bottom:-6px;right:-6px;clip-path:polygon(100% 0,0 100%,100% 100%)}
+.scrap.ph .sc-date{display:none}
+.scrap.ph .sc-text{-webkit-line-clamp:2;font-family:var(--font-hand);font-weight:700;font-size:15px;line-height:1.3}
+.sc-photo .more{right:4px;bottom:4px}
+.q-photos{display:flex;gap:8px;overflow-x:auto;padding:0 0 10px;scrollbar-width:none}
+.q-ph{position:relative;flex:none;width:92px;height:92px;border-radius:8px;overflow:hidden;background:var(--chip);border:3px solid #FFFFFF;box-shadow:0 2px 5px rgba(60,40,20,.15)}
+.q-ph img{display:block;width:100%;height:100%;object-fit:cover}
+.q-ph.busy{display:grid;place-items:center;font-size:12px;color:var(--muted);background:var(--surface)}
+.q-x{position:absolute;top:3px;right:3px;min-width:24px;height:24px;padding:0 6px;border:0;border-radius:12px;background:rgba(40,32,26,.65);color:#FFFFFF;font-size:13px;line-height:24px}
+.q-ph.armed .q-x{background:var(--danger)}
+.q-add{flex:none;width:92px;height:92px;border:1.5px dashed var(--line);border-radius:10px;background:transparent;color:var(--muted);font-size:13.5px;font-weight:600}
+.q-add.big{width:100%;height:132px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#FBF7EF;font-size:15px}
+.q-add-ic{font-size:30px;line-height:1;color:#B9A58C}
 </style>
 </head>
 <body>
@@ -455,8 +481,9 @@ body.carrying .fab{opacity:0;pointer-events:none}
 <div id="qsheet" class="sheet qsheet" hidden role="dialog" aria-labelledby="qT">
   <div class="sheet-head"><b id="qT">스크랩북에 끼워넣기</b><button class="btn primary" data-act="q-save">완료</button></div>
   <div class="q-topics" id="qTopics" role="group" aria-label="주제"></div>
-  <label class="sr" for="qText">메모</label>
-  <textarea id="qText" rows="5" placeholder="짧게 적어 두세요"></textarea>
+  <div class="q-photos" id="qPhotos"></div>
+  <label class="sr" for="qText">사진 설명이나 메모</label>
+  <textarea id="qText" rows="4" placeholder="사진 설명이나 짧은 메모"></textarea>
   <div class="q-acts"><button class="btn ghost danger" id="qTrash" data-act="q-trash">버리기</button><span class="sp"></span><button class="btn ghost" id="qMore" data-act="q-more">자세히 쓰기</button></div>
 </div>
 <div id="dragHint" class="drag-hint" hidden>옮길 가구 위에서 손을 떼세요</div>
@@ -740,13 +767,14 @@ const LOOK={
   dusk: {sky:['#D9A6A0','#F4D3B4'],tree:['#AFA697','#9C9584'],bld:['#D8BDB6','#CDB0AA'],wall:'#F8DCC6',wa:.8,floor:'#FBE3CF',fa:.65,glare:.4},
   night:{sky:['#2C3354','#4B4F74'],tree:['#46514F','#3B4544'],bld:['#4A5070','#414764'],wall:null,wa:0,floor:null,fa:0,glare:.18}
 };
-/* a crumpled paper ball: an uneven outline, a shaded side and a few creases */
+/* a crumpled paper ball: uneven outline, two shaded facets and creases */
 function crumple(cx,cy,r,seed){
-  let pts=[];for(let i=0;i<10;i++){const a=i/10*Math.PI*2,k=.8+.24*Math.abs(Math.sin(seed*7.3+i*2.1));pts.push([cx+Math.cos(a)*r*k,cy+Math.sin(a)*r*k*.92])}
-  const d='M'+pts.map(p=>f(p[0])+' '+f(p[1])).join('L')+'Z';
-  let s='<path d="'+d+'" fill="#FBF8F2" stroke="#D9CEBE" stroke-width=".8" stroke-linejoin="round"/>';
-  s+='<path d="M'+f(cx+r*.15)+' '+f(cy-r*.05)+'L'+f(pts[1][0])+' '+f(pts[1][1])+'L'+f(pts[3][0])+' '+f(pts[3][1])+'Z" fill="#EEE6D8"/>';
-  s+='<path d="M'+f(cx-r*.5)+' '+f(cy-r*.2)+'L'+f(cx+r*.1)+' '+f(cy+r*.05)+'L'+f(cx-r*.15)+' '+f(cy+r*.55)+'M'+f(cx+r*.1)+' '+f(cy+r*.05)+'L'+f(cx+r*.45)+' '+f(cy-r*.45)+'" fill="none" stroke="#D6CCBC" stroke-width=".8" stroke-linecap="round"/>';
+  const n=13,pts=[];
+  for(let i=0;i<n;i++){const a=i/n*Math.PI*2+seed,k=.78+.28*Math.abs(Math.sin(seed*5.1+i*1.9));pts.push(f(cx+Math.cos(a)*r*k)+' '+f(cy+Math.sin(a)*r*k*.9))}
+  const C=f(cx)+' '+f(cy);
+  let s='<path d="M'+pts.join('L')+'Z" fill="#FBF8F2" stroke="#D3C7B5" stroke-width=".8" stroke-linejoin="round"/>';
+  s+='<path d="M'+C+'L'+pts[2]+'L'+pts[3]+'L'+pts[4]+'Z" fill="#ECE3D3"/><path d="M'+C+'L'+pts[8]+'L'+pts[9]+'Z" fill="#F2EBDF"/>';
+  s+='<path d="M'+C+'L'+pts[0]+'M'+C+'L'+pts[6]+'M'+f(cx-r*.3)+' '+f(cy-r*.5)+'L'+f(cx+r*.2)+' '+f(cy-r*.1)+'L'+pts[11]+'" fill="none" stroke="#D6CBBA" stroke-width=".7" stroke-linecap="round"/>';
   return s;
 }
 function renderRoom(){
@@ -754,7 +782,7 @@ function renderRoom(){
   const P=period(),L=LOOK[P],X='x="-1600" width="3560"';
   let s='<defs>'+
     '<linearGradient id="gGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+L.sky[0]+'"/><stop offset="1" stop-color="'+L.sky[1]+'"/></linearGradient>'+
-    '<radialGradient id="gLamp"><stop offset="0" stop-color="#FFE7B0" stop-opacity=".55"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>'+
+    '<radialGradient id="gLamp"><stop offset="0" stop-color="#FFE3A6" stop-opacity=".3"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>'+
     '<pattern id="pCork" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#D9BC97"/><circle cx="2" cy="2" r=".8" fill="#C7A880"/><circle cx="5.3" cy="5" r=".6" fill="#E4CDAE"/></pattern>'+
     '<pattern id="pStripe" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(90)"><rect width="6" height="6" fill="#EBC6C0"/><rect width="2" height="6" fill="#FBF3EF"/></pattern>'+
     '<pattern id="pDot" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#EAD7A8"/><circle cx="3.5" cy="3.5" r="1.3" fill="#FBF5E6"/></pattern>'+
@@ -793,16 +821,8 @@ function renderRoom(){
 
   /* pendant lamp (lit at night) */
   s+='<path d="M272 -1600V118" stroke="#B9A58C" stroke-width="1.2"/><rect x="268" y="114" width="8" height="8" rx="2" fill="#A97A5E"/>';
-  if(P==='night')s+='<ellipse cx="272" cy="152" rx="30" ry="14" fill="url(#gLamp)"/>';
-  s+='<path d="M246 146 260 126Q272 118 284 126L298 146Z" fill="#C99277"/><path d="M246 146Q272 153 298 146Z" fill="'+(P==='night'?'#FFE9B8':'#F2E3CB')+'"/>';
-
-  /* wall clock showing the real time */
-  const now_=new Date(),hh=now_.getHours()%12,mm=now_.getMinutes(),ccx=264,ccy=394;
-  const ha=(hh+mm/60)/12*Math.PI*2,ma=mm/60*Math.PI*2;
-  s+='<circle cx="'+(ccx+1.5)+'" cy="'+(ccy+2.5)+'" r="24" fill="#8C7458" opacity=".16" filter="url(#fBlur)"/><circle cx="'+ccx+'" cy="'+ccy+'" r="24" fill="#D6BB98"/><circle cx="'+ccx+'" cy="'+ccy+'" r="20.5" fill="#FFFDF8"/>';
-  for(let i=0;i<12;i++){const a=i/12*Math.PI*2,r1=i%3?17.5:16,r2=19;s+='<path d="M'+f(ccx+Math.sin(a)*r1)+' '+f(ccy-Math.cos(a)*r1)+'L'+f(ccx+Math.sin(a)*r2)+' '+f(ccy-Math.cos(a)*r2)+'" stroke="#B9A58C" stroke-width="'+(i%3?.9:1.6)+'" stroke-linecap="round"/>'}
-  s+='<path d="M'+ccx+' '+ccy+'L'+f(ccx+Math.sin(ha)*10)+' '+f(ccy-Math.cos(ha)*10)+'" stroke="#5B4E43" stroke-width="2.2" stroke-linecap="round"/>';
-  s+='<path d="M'+ccx+' '+ccy+'L'+f(ccx+Math.sin(ma)*14.5)+' '+f(ccy-Math.cos(ma)*14.5)+'" stroke="#5B4E43" stroke-width="1.4" stroke-linecap="round"/><circle cx="'+ccx+'" cy="'+ccy+'" r="1.8" fill="#A86A50"/>';
+  if(P==='night')s+='<ellipse cx="272" cy="150" rx="22" ry="9" fill="url(#gLamp)"/>';
+  s+='<path d="M246 146 260 126Q272 118 284 126L298 146Z" fill="#C99277"/><path d="M246 146Q272 153 298 146Z" fill="'+(P==='night'?'#F5E2BE':'#F2E3CB')+'"/>';
 
   /* cork board */
   s+='<rect x="190" y="182" width="156" height="124" rx="6" fill="#8C7458" opacity=".16" filter="url(#fBlur)"/>';
@@ -824,7 +844,7 @@ function renderRoom(){
   /* rug, light on the floor, soft shadows */
   s+='<path d="M34 616H326L352 702H8Z" fill="#F3ECE2" stroke="#F3ECE2" stroke-width="8" stroke-linejoin="round"/><path d="M46 624H314L336 694H24Z" fill="none" stroke="#E5D8C6" stroke-width="1.4"/>';
   if(L.floor)s+='<g fill="'+L.floor+'" opacity="'+L.fa+'"><path d="M92 628H140L162 686H114Z"/><path d="M150 628H170L192 686H172Z"/></g>';
-  [[112,610,74,5],[242,606,56,5],[328,606,24,4],[21,617,28,4]].forEach(([x,y,rx,ry])=>{s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#8E765D" opacity=".26" filter="url(#fBlur)"/>'});
+  [[112,610,74,5],[242,606,56,5],[328,606,24,4],[21,617,28,4],[290,606,66,4]].forEach(([x,y,rx,ry])=>{s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#8E765D" opacity=".26" filter="url(#fBlur)"/>'});
 
   /* drawer cabinet; a drawer with memos sits a little open with something peeking out */
   s+='<rect x="42" y="406" width="140" height="184" fill="#D6B189"/><rect x="176" y="408" width="6" height="182" fill="#C9A47C"/>';
@@ -861,30 +881,47 @@ function renderRoom(){
   s+='<path d="M108 392v10l2.6-2.2 2.6 2.2v-10Z" fill="#8FA58E"/>';
   s+=pill(92,356,'스크랩북')+'</g>';
   s+='<path d="M144 398c-6 0-8-5-8-10s3-8 8-8 8 3 8 8-2 10-8 10Z" fill="#AFC2AE"/><path d="M144 380c-1-8 1-14 5-18M144 380c-3-6-8-8-12-8M145 380c2-5 6-8 10-8" stroke="#7F9A84" stroke-width="1.2" fill="none" stroke-linecap="round"/>';
-  if(P==='night')s+='<circle cx="166" cy="358" r="30" fill="url(#gLamp)"/>';
-  s+='<circle cx="166" cy="387" r="10.5" fill="#E8DBC8"/><rect x="164.5" y="362" width="3" height="16" fill="#CDB89E"/><path d="M151 366 155 342H177L181 366Z" fill="'+(P==='night'?'#FFF1CF':'#F7EFE3')+'"/><path d="M151 366H181" stroke="#E7DAC7" stroke-width="1.5"/>';
+  if(P==='night')s+='<circle cx="166" cy="356" r="22" fill="url(#gLamp)"/>';
+  s+='<circle cx="166" cy="387" r="10.5" fill="#E8DBC8"/><rect x="164.5" y="362" width="3" height="16" fill="#CDB89E"/><path d="M151 366 155 342H177L181 366Z" fill="'+(P==='night'?'#FAEBD0':'#F7EFE3')+'"/><path d="M151 366H181" stroke="#E7DAC7" stroke-width="1.5"/>';
 
-  /* box: things peek out only when it holds memos */
-  s+=furn('box','상자','boxG')+'<rect class="tap" x="182" y="486" width="118" height="152"/>';
+  /* desk under the cork board, a few things on top */
+  s+='<path d="M232 462h6l-2 142h-3ZM340 462h6l-2 142h-3Z" fill="#A9825E"/>';
+  s+='<rect x="226" y="452" width="126" height="11" fill="#CDA67C"/><rect x="304" y="455.5" width="30" height="4" rx="2" fill="#E6CDAA"/>';
+  s+='<rect x="220" y="444" width="138" height="9" rx="2" fill="#C99E73"/>';
+  s+='<rect x="232" y="436" width="34" height="8" rx="1.5" fill="#AFC2AE"/><rect x="235" y="428" width="30" height="8" rx="1.5" fill="#E3C3BA"/><rect x="233" y="421" width="28" height="7" rx="1.5" fill="#EAD8AE"/>';
+  s+='<path d="M236 440h27M239 432h23M237 424.5h21" stroke="#FFFFFF" stroke-width=".8" opacity=".5"/>';
+  s+='<path d="M281 427 279 413" stroke="#C9826A" stroke-width="2.2" stroke-linecap="round"/><path d="M285 427 286 410" stroke="#8FA58E" stroke-width="2.2" stroke-linecap="round"/><path d="M288 427 292 415" stroke="#D9B66E" stroke-width="2.2" stroke-linecap="round"/>';
+  s+='<path d="M277 444h14l-1.2-17h-11.6Z" fill="#E8DBC9"/><path d="M278 431h12" stroke="#D6C6B0" stroke-width="1"/>';
+  s+='<g transform="rotate(-6 312 428)"><rect x="298" y="408" width="30" height="36" rx="1" fill="#D6BB98"/><rect x="301" y="411" width="24" height="30" fill="#FBF7F0"/><path d="M305 438V429a6 6 0 0 1 12 0v9Z" fill="#AFC2AE"/><circle cx="319.5" cy="419" r="4" fill="#D9A08A"/></g>';
+  s+=leaf(341,432,334,417,4,'#93AC95')+leaf(341,432,349,416,4.5,'#7F9A84')+leaf(341,432,342,411,4,'#A7BDA6')+'<path d="M334 444h14l-2-12h-10Z" fill="#F1E7DA"/>';
+
+  /* box: things sit inside only when it holds memos */
+  s+=furn('box','상자','boxG')+'<rect class="tap" x="182" y="480" width="118" height="158"/>';
   s+='<path d="M220 518 228 497 292 495 298 518Z" fill="#D8BE9A"/><path d="M202 530 220 518H298L280 530Z" fill="#B59A77"/>';
-  if(c.box>=3)s+='<g transform="rotate(18 286 512)"><rect x="282" y="494" width="8" height="30" rx="2" fill="#F3EBDD"/><ellipse cx="286" cy="494" rx="4" ry="1.8" fill="#E2D6C2"/><path d="M282 502h8" stroke="#D9A08A" stroke-width="1.6"/></g>';
-  if(c.box>=2)s+='<circle cx="266" cy="519" r="10" fill="#D9A08A"/><path d="M257 515c5 2 12 1 18-3M256 521c6 2 13 2 19-2M260 528c3-7 8-12 14-15" stroke="#C4876F" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
-  if(c.box>=1)s+='<circle cx="227" cy="499" r="5.5" fill="#B88763"/><circle cx="227" cy="499" r="2.6" fill="#E6C7A3"/><circle cx="247" cy="499" r="5.5" fill="#B88763"/><circle cx="247" cy="499" r="2.6" fill="#E6C7A3"/>'+
-    '<circle cx="237" cy="511" r="13" fill="#C99A70"/><ellipse cx="237" cy="516" rx="6" ry="4.6" fill="#EED8BD"/><ellipse cx="237" cy="514.4" rx="2" ry="1.4" fill="#5B4535"/>'+
-    '<circle cx="232" cy="508" r="1.5" fill="#4A3A2E"/><circle cx="242" cy="508" r="1.5" fill="#4A3A2E"/><path d="M235.5 517.6q1.5 1.2 3 0" stroke="#5B4535" stroke-width=".8" fill="none" stroke-linecap="round"/>';
+  if(c.box>=3)s+='<g transform="rotate(16 287 512)"><rect x="283" y="490" width="8" height="42" rx="2.5" fill="#F3EBDD"/><ellipse cx="287" cy="490" rx="4" ry="1.8" fill="#E2D6C2"/><path d="M283 499h8M283 503h8" stroke="#D9A08A" stroke-width="1.4"/></g>';
+  if(c.box>=2)s+='<circle cx="268" cy="524" r="10.5" fill="#D9A08A"/><path d="M259 519c5 2 13 1 18-3M258 525c6 2 14 2 20-2M262 532c3-8 9-13 15-16M265 515c4 4 6 10 6 16" stroke="#C4876F" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
+  if(c.box>=1)s+='<ellipse cx="238" cy="535" rx="17" ry="18" fill="#C99A70"/><ellipse cx="238" cy="537" rx="10" ry="12" fill="#E6C49C"/>'+
+    '<circle cx="225.5" cy="491" r="6.5" fill="#B98763"/><circle cx="225.5" cy="491" r="3.2" fill="#E8C9A6"/><circle cx="250.5" cy="491" r="6.5" fill="#B98763"/><circle cx="250.5" cy="491" r="3.2" fill="#E8C9A6"/>'+
+    '<circle cx="238" cy="503" r="15" fill="#C99A70"/><ellipse cx="238" cy="508.5" rx="7" ry="5.4" fill="#F0DCC2"/>'+
+    '<ellipse cx="238" cy="506.6" rx="2.4" ry="1.7" fill="#5B4535"/><path d="M236 510.2q2 1.6 4 0" stroke="#5B4535" stroke-width=".9" fill="none" stroke-linecap="round"/>'+
+    '<circle cx="232.4" cy="500" r="1.7" fill="#4A3A2E"/><circle cx="243.6" cy="500" r="1.7" fill="#4A3A2E"/><circle cx="232.9" cy="499.4" r=".5" fill="#FFFFFF"/><circle cx="244.1" cy="499.4" r=".5" fill="#FFFFFF"/>'+
+    '<ellipse cx="228.6" cy="506.5" rx="2.6" ry="1.6" fill="#E9A28E" opacity=".55"/><ellipse cx="247.4" cy="506.5" rx="2.6" ry="1.6" fill="#E9A28E" opacity=".55"/>'+
+    '<path d="M230 515.5l8 3.8 8-3.8v7.6l-8-3.8-8 3.8Z" fill="#C98F77"/><circle cx="238" cy="519.3" r="2" fill="#B07760"/>';
   s+='<path d="M202 530H280V604H202Z" fill="#E6D0B2"/><path d="M280 530 298 518V592L280 604Z" fill="#D5BB97"/><path d="M202 530 186 516 204 507 220 518Z" fill="#DEC6A5"/>';
+  if(c.box>=1)s+='<ellipse cx="224" cy="531" rx="5.6" ry="4.2" fill="#C99A70"/><ellipse cx="252" cy="531" rx="5.6" ry="4.2" fill="#C99A70"/><ellipse cx="224" cy="532" rx="2.6" ry="1.8" fill="#E6C49C"/><ellipse cx="252" cy="532" rx="2.6" ry="1.8" fill="#E6C49C"/>';
   s+='<rect x="234" y="530" width="14" height="12" fill="#F2E5CF"/>';
   s+='<rect x="214" y="558" width="54" height="20" rx="3" fill="#FFFBF5"/><text class="bl" x="241" y="568" dominant-baseline="central">잡동사니</text>';
   s+=pill(242,618,'상자')+'</g>';
 
-  /* rattan basket: crumpled paper only when something was thrown away */
-  s+=furn('trash','쓰레기통')+'<rect class="tap" x="300" y="512" width="60" height="128"/>';
-  if(c.trash>=3)s+='<g transform="rotate(14 344 532)"><rect x="338" y="514" width="12" height="20" rx="1" fill="#FFFDF8" stroke="#D9CEBE" stroke-width=".7"/><path d="M341 519h6M341 522.5h5M341 526h6" stroke="#D6CCBC" stroke-width=".8"/></g>';
-  if(c.trash>=1)s+=crumple(319,535,8,1);
-  if(c.trash>=2)s+=crumple(334,532,9,2);
+  /* rattan basket under the desk: crumpled paper inside only when something was thrown away */
+  s+=furn('trash','쓰레기통')+'<rect class="tap" x="300" y="506" width="60" height="134"/>';
   s+='<path d="M307 548H349L344 604H312Z" fill="#BE9868"/>';
   for(let y=555;y<602;y+=6.5)s+='<path d="M'+f(307+(y-548)*.09)+' '+f(y)+'H'+f(349-(y-548)*.09)+'" stroke="#9A774D" stroke-width="1.1" opacity=".85"/>';
   for(let i=1;i<6;i++){const x=307+i*7;s+='<path d="M'+x+' 550L'+f(x+(328-x)*.09)+' 603" stroke="#A88458" stroke-width=".9" opacity=".7"/>'}
+  s+='<rect x="305" y="535" width="46" height="9" rx="4.5" fill="#A2805A"/>';
+  if(c.trash>=3)s+='<g transform="rotate(12 342 528)"><rect x="336" y="512" width="13" height="28" rx="1" fill="#FFFDF8" stroke="#D9CEBE" stroke-width=".7"/><path d="M339 518h7M339 521.5h6M339 525h7" stroke="#D6CCBC" stroke-width=".8"/></g>';
+  if(c.trash>=1)s+=crumple(319,539,9,1);
+  if(c.trash>=2)s+=crumple(334,537.5,10,2);
   s+='<rect x="303" y="540" width="50" height="9" rx="4.5" fill="#CFAE80"/><rect x="303" y="540" width="50" height="3" rx="1.5" fill="#DDC197"/>';
   s+=pill(322,618,'쓰레기통')+'</g>';
 
@@ -969,8 +1006,10 @@ function scrapHTML(){
   }
   const items=tops('stack').filter(d=>topicOf(d)===ct).sort(byNew);
   h+='<div class="scraps" id="scrapScroll">';
-  h+=items.map(d=>{const hs=hashStr(d.id),r=((hs%5)-2)*.7,txt=[titleOf(d),preview(d)].filter(Boolean).join('\n');
-    return '<button class="scrap" style="--r:'+r+'deg;--sc:'+SCRAP_COL[hs%SCRAP_COL.length]+';--tc:'+topicCol(ct)+'" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'"><span class="sc-tape" aria-hidden="true"></span><span class="sc-text">'+esc(txt||'빈 종이')+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span></button>'}).join('');
+  h+=items.map(d=>{const hs=hashStr(d.id),r=((hs%5)-2)*.7,txt=[titleOf(d),preview(d)].filter(Boolean).join('\n'),p=(d.photos||[])[0];
+    return '<button class="scrap'+(p?' ph':'')+'" style="--r:'+r+'deg;--sc:'+SCRAP_COL[hs%SCRAP_COL.length]+';--tc:'+topicCol(ct)+'" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
+      (p?'<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(d.photos.length>1?'<span class="more">+'+(d.photos.length-1)+'</span>':'')+'</span>':'<span class="sc-tape" aria-hidden="true"></span>')+
+      '<span class="sc-text">'+esc(txt||(p?'':'빈 종이'))+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span></button>'}).join('');
   h+='<button class="scrap add" data-act="scrap-new">+ 끼워넣기</button></div></div>';
   h+='<p class="hint">'+(items.length>3?'옆으로 넘겨 보세요 · ':'')+'고른 책갈피를 한 번 더 누르면 주제 이름을 바꿀 수 있어요</p>';
   return h;
@@ -1051,28 +1090,46 @@ function trashHTML(){
 
 /* quick scrap sheet: a plain note for the scrapbook */
 let q=null;
-const isPlainDoc=d=>!(d.title||'').trim()&&isPlain(d)&&!(d.photos||[]).length&&!kids(d.id).length;
+const isPlainDoc=d=>!(d.title||'').trim()&&isPlain(d)&&!kids(d.id).length;
 function openQ(id){
   const d=id&&get(id);
   if(d&&!isPlainDoc(d)){edStack=[];cur=null;openEditor(id);return}
-  q={id:d?d.id:null,topic:d?topicOf(d):((panel&&panel.topic)||topics[0].id)};
+  q={id:d?d.id:null,topic:d?topicOf(d):((panel&&panel.topic)||topics[0].id),photos:d?[...(d.photos||[])]:[],orig:d?[...(d.photos||[])]:[],dropped:[],busy:0,rm:-1};
   $('#qT').textContent=d?'스크랩 고치기':'스크랩북에 끼워넣기';
   $('#qText').value=d?noteText(d):'';
   $('#qTrash').hidden=!d;$('#qMore').hidden=!d;
-  renderQTopics();
+  renderQTopics();renderQPhotos();
   $('#qBack').hidden=false;$('#qsheet').hidden=false;
   setTimeout(()=>{const t=$('#qText');t.focus();t.setSelectionRange(t.value.length,t.value.length)},60);
 }
 function renderQTopics(){if(!q)return;$('#qTopics').innerHTML=topics.map(t=>'<button class="q-chip'+(t.id===q.topic?' on':'')+'" data-act="q-topic" data-t="'+t.id+'" style="--bm:'+topicCol(t.id)+'" aria-pressed="'+(t.id===q.topic)+'">'+esc(t.name)+'</button>').join('')}
+function renderQPhotos(){
+  const el=$('#qPhotos');if(!q)return;const any=q.photos.length||q.busy;
+  let h=q.photos.map((p,i)=>'<div class="q-ph'+(q.rm===i?' armed':'')+'"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="사진 '+(i+1)+'"><button class="q-x" data-act="q-ph" data-i="'+i+'" aria-label="'+(q.rm===i?'한 번 더 누르면 사진이 빠져요':'사진 빼기')+'">'+(q.rm===i?'빼기':'×')+'</button></div>').join('');
+  for(let i=0;i<q.busy;i++)h+='<div class="q-ph busy">올리는 중…</div>';
+  if(canPhoto())h+='<button class="q-add'+(any?'':' big')+'" data-act="q-ph-add">'+(any?'+ 사진':'<span class="q-add-ic" aria-hidden="true">+</span>사진 넣기')+'</button>';
+  el.innerHTML=h;
+}
+async function qAddPhotos(files){
+  const qq=q;if(!qq)return;
+  for(const file of files){
+    qq.busy++;if(q===qq)renderQPhotos();
+    let ref=null;try{ref=await uploadOne(file)}catch(e){upErr(e)}
+    qq.busy--;if(ref)qq.photos.push(ref);
+    if(q===qq)renderQPhotos();
+  }
+}
 function closeQ(){$('#qBack').hidden=true;$('#qsheet').hidden=true;q=null}
 function saveQ(){
   if(!q)return;
-  const text=$('#qText').value.replace(/\s+$/,''),blocks=text.split('\n').map(x=>({t:'p',x}));
+  if(q.busy){toast('사진을 올리는 중이에요. 잠깐만요');return}
+  const text=$('#qText').value.replace(/\s+$/,''),blocks=text.split('\n').map(x=>({t:'p',x})),has=text.trim()||q.photos.length;
+  const samePhotos=q.photos.length===q.orig.length&&q.photos.every((p,i)=>p===q.orig[i]);
   if(q.id){const d=get(q.id);if(d){
-    if(!text.trim()){trashDoc(d.id);const id=d.id;toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}
-    else if(text!==noteText(d)||q.topic!==topicOf(d))put({...d,blocks,topic:q.topic});
+    if(!has){trashDoc(d.id);const id=d.id;toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}
+    else{if(text!==noteText(d)||q.topic!==topicOf(d)||!samePhotos)put({...d,blocks,topic:q.topic,photos:[...q.photos]});q.dropped.forEach(dropAsset)}
   }}
-  else if(text.trim())put(newDoc({place:'stack',topic:q.topic,blocks}));
+  else if(has)put(newDoc({place:'stack',topic:q.topic,blocks,photos:[...q.photos]}));
   if(panel&&panel.place==='stack')panel.topic=q.topic;
   closeQ();renderPanel(true);
 }
@@ -1342,6 +1399,8 @@ const drag={timer:0,id:null,on:false,x:0,y:0,lx:0,ly:0,ghost:null,hot:null,justE
 function startDrag(){
   drag.timer=0;const d=get(drag.id);if(!d)return;
   drag.on=true;drag.sx=drag.lx;drag.sy=drag.ly;
+  try{const sel=window.getSelection();if(sel)sel.removeAllRanges()}catch(e){}
+  const ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur();
   const g=document.createElement('div');g.className='drag-ghost';
   g.textContent=titleOf(d)||((d.photos||[]).length?'사진':'메모');
   document.body.appendChild(g);drag.ghost=g;
@@ -1389,11 +1448,13 @@ document.addEventListener('pointerup',()=>{clearTimeout(drag.timer);drag.timer=0
 document.addEventListener('pointercancel',()=>{clearTimeout(drag.timer);drag.timer=0;if(drag.on)endDrag(false)});
 document.addEventListener('touchmove',e=>{if(drag.on)e.preventDefault()},{passive:false});
 document.addEventListener('contextmenu',e=>{if(drag.on||drag.timer||e.target.closest('[data-drag-id]'))e.preventDefault()});
+document.addEventListener('selectstart',e=>{if(drag.on||drag.timer)e.preventDefault()});
+document.addEventListener('dragstart',e=>{if(drag.on||drag.timer||(e.target.closest&&e.target.closest('[data-drag-id]')))e.preventDefault()});
 document.addEventListener('click',e=>{if(drag.justEnded){e.stopPropagation();e.preventDefault();drag.justEnded=false}},true);
 
 /* ================= render loop ================= */
 let raf=0;
-function changed(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{renderRoom();renderHome();renderPanel();if(cur&&!$('#editor').hidden){renderHead();renderKids();renderPhotos()}galImgs();renderSearch()})}
+function changed(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{renderRoom();renderHome();renderPanel();if(cur&&!$('#editor').hidden){renderHead();renderKids();renderPhotos()}galImgs();if(q&&!$('#qsheet').hidden)$('#qPhotos').querySelectorAll('img[data-p]').forEach(img=>{const u=srcOf(img.dataset.p);if(img.getAttribute('src')!==u)img.src=u});renderSearch()})}
 
 /* ================= events ================= */
 function pressAndGo(g){
@@ -1452,6 +1513,10 @@ document.addEventListener('click',e=>{
     case 'scrap-edit':openQ(a.dataset.id);break;
     case 'q-save':case 'q-close':saveQ();break;
     case 'q-topic':if(q){q.topic=a.dataset.t;renderQTopics()}break;
+    case 'q-ph-add':if(q){pickTarget='scrap';$('#fileIn').click()}break;
+    case 'q-ph':{if(!q)break;const i=+a.dataset.i;
+      if(q.rm!==i){q.rm=i;renderQPhotos();setTimeout(()=>{if(q&&q.rm===i){q.rm=-1;renderQPhotos()}},2500);break}
+      const ref=q.photos.splice(i,1)[0];q.rm=-1;if(q.orig.includes(ref))q.dropped.push(ref);else dropAsset(ref);renderQPhotos();break}
     case 'q-trash':{const id=q&&q.id;closeQ();if(id&&get(id)){trashDoc(id);toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}break}
     case 'q-more':{const id=q&&q.id;saveQ();const d=id&&get(id);if(d&&d.place!=='trash'){edStack=[];cur=null;openEditor(id)}break}
     case 'topic':{const t=a.dataset.t;if(panel.topic===t&&!panel.topicEdit){panel.topicEdit=t;panel.topicDraft=null}else{panel.topic=t;panel.topicEdit=null;panel.topicDraft=null}
@@ -1514,6 +1579,7 @@ pBody.addEventListener('focusout',e=>{if(panelPending&&!pBody.contains(e.related
 $('#fileIn').addEventListener('change',async()=>{
   const inp=$('#fileIn'),files=[...inp.files];inp.value='';if(!files.length)return;
   if(pickTarget==='newBoard'){await boardAdd(files);return}
+  if(pickTarget==='scrap'){await qAddPhotos(files);return}
   await addPhotos(files);
 });
 $('#q').addEventListener('input',renderSearch);
