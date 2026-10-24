@@ -16,7 +16,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Gaegu:wght@700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400&text=%EC%83%9D%EA%B0%81%EC%9D%98%20%EB%B0%A9&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
 <script src="config.js"></script>
 <style>
@@ -74,7 +73,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .hud{position:fixed;top:0;left:0;right:0;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none;
   padding-top:calc(env(safe-area-inset-top,0px) + 42px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .hud>*{pointer-events:auto}
-h1{font-family:var(--font-logo);font-weight:400;font-size:34px;line-height:1.1;margin:0;color:#3A332D;letter-spacing:-.01em}
+h1{font-family:var(--font-title);font-weight:700;font-size:30px;line-height:1.1;margin:0;color:#3A332D;letter-spacing:-.01em}
 .dates{font-family:var(--font-mono);font-size:12px;color:#8A7D70;letter-spacing:.04em;margin-top:5px;font-variant-numeric:tabular-nums}
 .note{display:inline-block;margin:8px 0 0;font-size:12px;color:#6F6357;background:rgba(255,253,249,.8);border-radius:999px;padding:3px 10px}
 .round{width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;background:rgba(255,253,249,.92);color:#3A332D;box-shadow:0 6px 16px -8px rgba(90,65,40,.45)}
@@ -275,7 +274,7 @@ h1{font-family:var(--font-logo);font-weight:400;font-size:34px;line-height:1.1;m
 .auth{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(236,226,213,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
 .auth-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px 20px 14px;display:grid;gap:6px;box-shadow:0 24px 40px -24px var(--shadow)}
-.auth-card h2{font-family:var(--font-logo);font-weight:400;font-size:28px;line-height:1.2;margin:0}
+.auth-card h2{font-family:var(--font-title);font-weight:700;font-size:28px;line-height:1.2;margin:0}
 .auth-card p{margin:0 0 8px;color:var(--muted);font-size:14px;text-wrap:balance}
 .auth-card label{font-size:13px;color:var(--muted);margin-top:4px}
 .auth-card input{font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
@@ -406,6 +405,16 @@ body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:non
 .tb:hover,.tb:active{background:var(--chip)}
 .tb svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .tb.done{width:auto;padding:0 14px;font-size:15px;font-weight:600;color:var(--accent)}
+
+/* ---------- round 6 ---------- */
+.scrap{height:200px}
+.scrap.ph{background:transparent;box-shadow:none;padding:4px}
+.scrap.ph .sc-photo{flex:1;height:auto;min-height:0;border-width:5px;box-shadow:0 8px 14px -8px rgba(60,40,20,.45)}
+.sc-note{position:absolute;right:5px;bottom:5px;width:16px;height:16px;background:#FFFDF8;border-radius:2px 2px 6px 2px;box-shadow:0 1px 3px rgba(0,0,0,.25);
+  background-image:linear-gradient(#D9CDBB,#D9CDBB),linear-gradient(#D9CDBB,#D9CDBB);background-size:9px 1.4px,6px 1.4px;background-position:3.5px 5px,3.5px 9px;background-repeat:no-repeat}
+.q-ph{width:min(76%,300px);height:220px}
+.q-add{height:220px}
+.q-add.big{height:180px}
 </style>
 </head>
 <body>
@@ -711,8 +720,19 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
+const APP_VERSION='6';
+async function checkUpdate(){
+  try{
+    const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const j=await r.json();if(!j||!j.v||String(j.v)===APP_VERSION)return;
+    let last=0;try{last=+sessionStorage.getItem('idea-room-upd')||0}catch(e){}
+    if(Date.now()-last<20000)return;
+    try{sessionStorage.setItem('idea-room-upd',String(Date.now()))}catch(e){}
+    flushAll();setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(j.v)),300);
+  }catch(e){}
+}
 async function boot(){
-  changed();
+  changed();checkUpdate();
   if(!sb){
     if(hasCfg){mode='auth';showAuth();authMsg('Supabase를 불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.');return}
     startLocal();return;
@@ -918,23 +938,26 @@ function renderRoom(){
   s+='<path d="M236 440h27M239 432h23M237 424.5h21" stroke="#FFFFFF" stroke-width=".8" opacity=".5"/>';
   s+='<path d="M281 427 279 413" stroke="#C9826A" stroke-width="2.2" stroke-linecap="round"/><path d="M285 427 286 410" stroke="#8FA58E" stroke-width="2.2" stroke-linecap="round"/><path d="M288 427 292 415" stroke="#D9B66E" stroke-width="2.2" stroke-linecap="round"/>';
   s+='<path d="M277 444h14l-1.2-17h-11.6Z" fill="#E8DBC9"/><path d="M278 431h12" stroke="#D6C6B0" stroke-width="1"/>';
-  s+='<g transform="rotate(-6 312 428)"><rect x="298" y="408" width="30" height="36" rx="1" fill="#D6BB98"/><rect x="301" y="411" width="24" height="30" fill="#FBF7F0"/><path d="M305 438V429a6 6 0 0 1 12 0v9Z" fill="#AFC2AE"/><circle cx="319.5" cy="419" r="4" fill="#D9A08A"/></g>';
-  s+=leaf(341,432,334,417,4,'#93AC95')+leaf(341,432,349,416,4.5,'#7F9A84')+leaf(341,432,342,411,4,'#A7BDA6')+'<path d="M334 444h14l-2-12h-10Z" fill="#F1E7DA"/>';
+  s+='<rect x="299" y="410" width="28" height="34" rx="1" fill="#D6BB98"/><rect x="302" y="413" width="22" height="28" fill="#FBF7F0"/><path d="M305.5 438V430a5.5 5.5 0 0 1 11 0v8Z" fill="#AFC2AE"/><circle cx="318.5" cy="420" r="3.6" fill="#D9A08A"/>';
+  if(P==='night')s+='<circle cx="342" cy="424" r="17" fill="url(#gLamp)"/>';
+  s+='<ellipse cx="342" cy="443.6" rx="8" ry="1.7" fill="#D9C8B0"/><path d="M339.4 444 340.2 427h3.6l.8 17Z" fill="#EFE4D4"/>';
+  s+='<path d="M328.5 428Q330 409 342 408.5Q354 409 355.5 428Z" fill="'+(P==='night'?'#FBE8C6':'#F0DCC0')+'"/><ellipse cx="342" cy="428" rx="13.5" ry="2.2" fill="#E3CCAA"/>';
+  s+='<circle cx="336" cy="417" r="1.6" fill="#FFFFFF" opacity=".6"/><circle cx="347" cy="414" r="1.2" fill="#FFFFFF" opacity=".6"/><circle cx="345" cy="421" r="1" fill="#FFFFFF" opacity=".6"/>';
 
   /* box: things sit inside only when it holds memos */
   s+=furn('box','상자','boxG')+'<rect class="tap" x="182" y="480" width="118" height="158"/>';
   s+='<path d="M220 518 228 497 292 495 298 518Z" fill="#D8BE9A"/><path d="M202 530 220 518H298L280 530Z" fill="#B59A77"/>';
   if(c.box>=3)s+='<g transform="rotate(16 287 512)"><rect x="283" y="490" width="8" height="42" rx="2.5" fill="#F3EBDD"/><ellipse cx="287" cy="490" rx="4" ry="1.8" fill="#E2D6C2"/><path d="M283 499h8M283 503h8" stroke="#D9A08A" stroke-width="1.4"/></g>';
   if(c.box>=2)s+='<circle cx="268" cy="524" r="10.5" fill="#D9A08A"/><path d="M259 519c5 2 13 1 18-3M258 525c6 2 14 2 20-2M262 532c3-8 9-13 15-16M265 515c4 4 6 10 6 16" stroke="#C4876F" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
-  if(c.box>=1)s+='<ellipse cx="238" cy="535" rx="17" ry="18" fill="#C99A70"/><ellipse cx="238" cy="537" rx="10" ry="12" fill="#E6C49C"/>'+
-    '<circle cx="225.5" cy="491" r="6.5" fill="#B98763"/><circle cx="225.5" cy="491" r="3.2" fill="#E8C9A6"/><circle cx="250.5" cy="491" r="6.5" fill="#B98763"/><circle cx="250.5" cy="491" r="3.2" fill="#E8C9A6"/>'+
-    '<circle cx="238" cy="503" r="15" fill="#C99A70"/><ellipse cx="238" cy="508.5" rx="7" ry="5.4" fill="#F0DCC2"/>'+
-    '<ellipse cx="238" cy="506.6" rx="2.4" ry="1.7" fill="#5B4535"/><path d="M236 510.2q2 1.6 4 0" stroke="#5B4535" stroke-width=".9" fill="none" stroke-linecap="round"/>'+
-    '<circle cx="232.4" cy="500" r="1.7" fill="#4A3A2E"/><circle cx="243.6" cy="500" r="1.7" fill="#4A3A2E"/><circle cx="232.9" cy="499.4" r=".5" fill="#FFFFFF"/><circle cx="244.1" cy="499.4" r=".5" fill="#FFFFFF"/>'+
-    '<ellipse cx="228.6" cy="506.5" rx="2.6" ry="1.6" fill="#E9A28E" opacity=".55"/><ellipse cx="247.4" cy="506.5" rx="2.6" ry="1.6" fill="#E9A28E" opacity=".55"/>'+
-    '<path d="M230 515.5l8 3.8 8-3.8v7.6l-8-3.8-8 3.8Z" fill="#C98F77"/><circle cx="238" cy="519.3" r="2" fill="#B07760"/>';
+  if(c.box>=1)s+='<g transform="rotate(-7 240 522)">'+
+    '<ellipse cx="240" cy="538" rx="16" ry="17" fill="#C99A70"/><ellipse cx="240" cy="541" rx="9.5" ry="11" fill="#E6C49C"/>'+
+    '<circle cx="228.5" cy="495.5" r="5.8" fill="#B98763"/><circle cx="228.5" cy="495.5" r="2.8" fill="#E8C9A6"/><circle cx="251.5" cy="495.5" r="5.8" fill="#B98763"/><circle cx="251.5" cy="495.5" r="2.8" fill="#E8C9A6"/>'+
+    '<circle cx="240" cy="507" r="14" fill="#C99A70"/><ellipse cx="240" cy="512" rx="6.2" ry="4.8" fill="#F0DCC2"/>'+
+    '<ellipse cx="240" cy="510.5" rx="2" ry="1.4" fill="#6B5241"/><path d="M238.6 513.3q1.4 1 2.8 0" stroke="#6B5241" stroke-width=".8" fill="none" stroke-linecap="round"/>'+
+    '<circle cx="235.2" cy="506.6" r="1.3" fill="#4A3A2E"/><circle cx="244.8" cy="506.6" r="1.3" fill="#4A3A2E"/>'+
+    '<ellipse cx="231.6" cy="511.2" rx="2.4" ry="1.5" fill="#E9A28E" opacity=".5"/><ellipse cx="248.4" cy="511.2" rx="2.4" ry="1.5" fill="#E9A28E" opacity=".5"/>'+
+    '<path d="M233.5 520.5l6.5 3 6.5-3v6l-6.5-3-6.5 3Z" fill="#C98F77"/><circle cx="240" cy="523.5" r="1.6" fill="#B07760"/></g>';
   s+='<path d="M202 530H280V604H202Z" fill="#E6D0B2"/><path d="M280 530 298 518V592L280 604Z" fill="#D5BB97"/><path d="M202 530 186 516 204 507 220 518Z" fill="#DEC6A5"/>';
-  if(c.box>=1)s+='<ellipse cx="224" cy="531" rx="5.6" ry="4.2" fill="#C99A70"/><ellipse cx="252" cy="531" rx="5.6" ry="4.2" fill="#C99A70"/><ellipse cx="224" cy="532" rx="2.6" ry="1.8" fill="#E6C49C"/><ellipse cx="252" cy="532" rx="2.6" ry="1.8" fill="#E6C49C"/>';
   s+='<rect x="234" y="530" width="14" height="12" fill="#F2E5CF"/>';
   s+='<rect x="214" y="558" width="54" height="20" rx="3" fill="#FFFBF5"/><text class="bl" x="241" y="568" dominant-baseline="central">잡동사니</text>';
   s+=pill(242,618,'상자')+'</g>';
@@ -945,7 +968,6 @@ function renderRoom(){
   for(let y=555;y<602;y+=6.5)s+='<path d="M'+f(307+(y-548)*.09)+' '+f(y)+'H'+f(349-(y-548)*.09)+'" stroke="#9A774D" stroke-width="1.1" opacity=".85"/>';
   for(let i=1;i<6;i++){const x=307+i*7;s+='<path d="M'+x+' 550L'+f(x+(328-x)*.09)+' 603" stroke="#A88458" stroke-width=".9" opacity=".7"/>'}
   s+='<rect x="305" y="535" width="46" height="9" rx="4.5" fill="#A2805A"/>';
-  if(c.trash>=3)s+='<g transform="rotate(12 342 528)"><rect x="336" y="512" width="13" height="28" rx="1" fill="#FFFDF8" stroke="#D9CEBE" stroke-width=".7"/><path d="M339 518h7M339 521.5h6M339 525h7" stroke="#D6CCBC" stroke-width=".8"/></g>';
   if(c.trash>=1)s+=crumple(319,539,9,1);
   if(c.trash>=2)s+=crumple(334,537.5,10,2);
   s+='<rect x="303" y="540" width="50" height="9" rx="4.5" fill="#CFAE80"/><rect x="303" y="540" width="50" height="3" rx="1.5" fill="#DDC197"/>';
@@ -1033,9 +1055,9 @@ function scrapHTML(){
   const items=tops('stack').filter(d=>topicOf(d)===ct).sort(byNew);
   h+='<div class="scraps" id="scrapScroll">';
   h+=items.map(d=>{const hs=hashStr(d.id),r=((hs%5)-2)*.7,txt=[titleOf(d),preview(d)].filter(Boolean).join('\n'),p=(d.photos||[])[0];
-    return '<button class="scrap'+(p?' ph':'')+'" style="--r:'+r+'deg;--sc:'+SCRAP_COL[hs%SCRAP_COL.length]+';--tc:'+topicCol(ct)+'" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
-      (p?'<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(d.photos.length>1?'<span class="more">+'+(d.photos.length-1)+'</span>':'')+'</span>':'<span class="sc-tape" aria-hidden="true"></span>')+
-      '<span class="sc-text">'+esc(txt||(p?'':'빈 종이'))+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span></button>'}).join('');
+    return '<button class="scrap'+(p?' ph':'')+'"'+(p?' aria-label="'+esc(txt?'사진 · '+txt:'사진')+'"':'')+' style="--r:'+r+'deg;--sc:'+SCRAP_COL[hs%SCRAP_COL.length]+';--tc:'+topicCol(ct)+'" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
+      (p?'<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(d.photos.length>1?'<span class="more">+'+(d.photos.length-1)+'</span>':'')+(txt?'<span class="sc-note" aria-hidden="true"></span>':'')+'</span>'
+        :'<span class="sc-tape" aria-hidden="true"></span><span class="sc-text">'+esc(txt||'빈 종이')+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span>')+'</button>'}).join('');
   h+='<button class="scrap add" data-act="scrap-new">+ 끼워넣기</button></div></div>';
   h+='<p class="hint">'+(items.length>3?'옆으로 넘겨 보세요 · ':'')+'고른 책갈피를 한 번 더 누르면 주제 이름을 바꿀 수 있어요</p>';
   return h;
@@ -1432,11 +1454,20 @@ function startDrag(){
   try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
   moveDrag(drag.lx,drag.ly);
 }
+function hitAt(x,y){
+  let best=null,bs=1e9;
+  document.querySelectorAll('#room .furn').forEach(g=>{
+    const t=g.querySelector('.tap');if(!t)return;const r=t.getBoundingClientRect();
+    const d=Math.hypot(Math.max(r.left-x,0,x-r.right),Math.max(r.top-y,0,y-r.bottom));
+    const sc=d===0?-1000+Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2)):d;
+    if(sc<bs){bs=sc;best=g}
+  });
+  return bs<=30?best:null;
+}
 function moveDrag(x,y){
   drag.lx=x;drag.ly=y;
   if(drag.ghost)drag.ghost.style.transform='translate('+Math.round(x-60)+'px,'+Math.round(y-64)+'px) rotate(-3deg)';
-  const el=document.elementFromPoint(x,y);
-  const go=el&&el.closest?el.closest('#room [data-go]'):null;
+  const go=hitAt(x,y-46)||hitAt(x,y);
   if(go!==drag.hot){if(drag.hot)drag.hot.classList.remove('hot');drag.hot=go;if(go)go.classList.add('hot')}
 }
 function endDrag(drop){
@@ -1644,7 +1675,7 @@ document.addEventListener('keydown',e=>{
   else if(!$('#panel').hidden){panel=null;hide('#panel')}
 });
 window.addEventListener('pagehide',flushAll);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)flushAll();else refresh()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushAll();else{refresh();checkUpdate()}});
 window.addEventListener('online',refresh);
 $('#authForm').addEventListener('submit',async e=>{
   e.preventDefault();if(!sb)return;
