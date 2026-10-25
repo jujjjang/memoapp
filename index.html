@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>생각의 방</title>
+<title>생각의 다락방</title>
 <meta name="description" content="방 안의 서랍, 상자, 코르크보드, 스크랩북에 생각을 넣어 정리하는 메모 앱">
 <meta name="theme-color" content="#ECE2D5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="생각의 방">
+<meta name="apple-mobile-web-app-title" content="생각의 다락방">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -462,11 +462,11 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 </head>
 <body>
 <div class="stage" id="app">
-  <svg id="room" viewBox="0 0 360 740" preserveAspectRatio="xMidYMid meet" role="group" aria-label="생각의 방. 가구를 눌러 메모를 열어요. 메모를 꾹 누르면 가구로 옮길 수 있어요"></svg>
+  <svg id="room" viewBox="0 0 360 740" preserveAspectRatio="xMidYMid meet" role="group" aria-label="생각의 다락방. 가구를 눌러 메모를 열어요. 메모를 꾹 누르면 가구로 옮길 수 있어요"></svg>
 </div>
 <header class="hud">
   <div>
-    <h1>생각의 방</h1>
+    <h1>생각의 다락방</h1>
     <div class="dates" id="dates"></div>
     <p id="note" class="note" hidden>지금은 이 브라우저에만 저장되고 있어요</p>
   </div>
@@ -581,7 +581,7 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 
 <div id="auth" class="auth" hidden>
   <form id="authForm" class="auth-card" autocomplete="on" novalidate>
-    <h2>생각의 방</h2>
+    <h2>생각의 다락방</h2>
     <p id="authLead">어느 기기에서든 같은 방을 보려면 로그인해 주세요.</p>
     <label for="authEmail">이메일</label>
     <input id="authEmail" type="email" inputmode="email" autocomplete="email" required>
@@ -772,7 +772,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='10';
+const APP_VERSION='11';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -995,19 +995,18 @@ function renderRoom(){
   const NL=P==='night';
   if(NL)s+='<ellipse cx="302" cy="407" rx="46" ry="34" fill="url(#gLamp)"/><ellipse cx="302" cy="405" rx="26" ry="18" fill="url(#gLamp)"/>';
   s+='<path d="M290 444a12 4.2 0 0 1 24 0Z" fill="#A47B55"/><rect x="300.9" y="389" width="2.2" height="52" fill="#A47B55"/><circle cx="302" cy="415" r="2" fill="#A47B55"/>';
-  s+='<path d="M285 349h34l11 40h-56Z" fill="'+(NL?'#C9D6BF':'#A3B79E')+'"/>';
-  s+='<path d="M293.5 349 289 389M302 349v40M310.5 349 315 389" stroke="'+(NL?'#B6C6AC':'#92A88D')+'" stroke-width=".9"/>';
-  s+='<path d="M274 389h56" stroke="'+(NL?'#FFF1D2':'#879D82')+'" stroke-width="2.4" stroke-linecap="round"/><rect x="284" y="347.6" width="36" height="2.4" rx="1.2" fill="#879D82"/>';
+  s+='<path d="M285 349h34l11 40h-56Z" fill="'+(NL?'#F8E4AE':'#EBD397')+'"/>';
+  s+='<path d="M293.5 349 289 389M302 349v40M310.5 349 315 389" stroke="'+(NL?'#EFD597':'#DCC07F')+'" stroke-width=".9"/>';
+  s+='<path d="M274 389h56" stroke="'+(NL?'#FFF1D2':'#D4B572')+'" stroke-width="2.4" stroke-linecap="round"/><rect x="284" y="347.6" width="36" height="2.4" rx="1.2" fill="#D4B572"/>';
 
   /* box: things sit inside only when it holds memos */
   s+=furn('box','상자','boxG')+'<rect class="tap" x="182" y="480" width="118" height="158"/>';
   s+='<path d="M220 518 228 497 292 495 298 518Z" fill="#D8BE9A"/><path d="M202 530 220 518H298L280 530Z" fill="#B59A77"/>';
-  if(c.box>=3)s+='<g transform="rotate(16 287 512)"><rect x="283" y="490" width="8" height="42" rx="2.5" fill="#F3EBDD"/><ellipse cx="287" cy="490" rx="4" ry="1.8" fill="#E2D6C2"/><path d="M283 499h8M283 503h8" stroke="#D9A08A" stroke-width="1.4"/></g>';
-  /* a couple of records standing in the box */
-  if(c.box>=1)s+='<g transform="rotate(8 252 522)"><rect x="236" y="501" width="33" height="40" rx="1.5" fill="#E5BFB3"/><path d="M241 508.5h23" stroke="#F3DCD3" stroke-width="2.2"/><circle cx="252.5" cy="522" r="6.5" fill="#F3DCD3"/><circle cx="252.5" cy="522" r="2" fill="#E5BFB3"/></g>'+
-    '<g transform="rotate(-9 236 522)"><circle cx="236" cy="506" r="14.5" fill="#4F4641"/><circle cx="236" cy="506" r="10.5" fill="none" stroke="#655B55" stroke-width=".8"/><circle cx="236" cy="506" r="7.5" fill="none" stroke="#5C524C" stroke-width=".6"/><circle cx="236" cy="506" r="4.4" fill="#E3C27A"/><circle cx="236" cy="506" r="1" fill="#4F4641"/>'+
-    '<rect x="219" y="509" width="34" height="36" rx="1.5" fill="#B9C9D3"/><rect x="225" y="516" width="22" height="15" rx="1" fill="#E4EBEF"/><path d="M228 521h16M228 525.5h10" stroke="#B9C9D3" stroke-width="1.6" stroke-linecap="round"/></g>';
-  if(c.box>=2)s+='<circle cx="268" cy="524" r="10.5" fill="#D9A08A"/><path d="M259 519c5 2 13 1 18-3M258 525c6 2 14 2 20-2M262 532c3-8 9-13 15-16M265 515c4 4 6 10 6 16" stroke="#C4876F" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
+  /* things tucked down inside: only their tops show over the front edge */
+  if(c.box>=3)s+='<g transform="rotate(7 281 525)"><rect x="277" y="513" width="8" height="22" rx="2.5" fill="#F3EBDD"/><ellipse cx="281" cy="513" rx="4" ry="1.7" fill="#E2D6C2"/><path d="M277 519.5h8" stroke="#D9A08A" stroke-width="1.4"/></g>';
+  if(c.box>=1)s+='<path d="M211 531C213 525.5 219 522.6 226 523.2C233 523.8 239 521.6 246 522.6C251 523.3 254 526 255 531Z" fill="#CFDBC8"/>'+
+    '<path d="M217 530.5 218.5 525M223 530.5 224 523.6M229 530.5 229.6 523.6M235 530.5 235.4 523M241 530.5 241 522.4M247 530.5 246.6 523" stroke="#BCCBB4" stroke-width="1.1" stroke-linecap="round"/>';
+  if(c.box>=2)s+='<path d="M254 531a10 10 0 0 1 20 0Z" fill="#D9A08A"/><path d="M256.5 526.5c5 1.6 11 1.2 15-1.6M258 523.2c3.6 2.6 5.4 5.4 6 7.8M263 521.4c3 2.2 5.6 5.6 6.4 9.6" stroke="#C4876F" stroke-width="1" fill="none" stroke-linecap="round"/>';
   s+='<path d="M202 530H280V604H202Z" fill="#E6D0B2"/><path d="M280 530 298 518V592L280 604Z" fill="#D5BB97"/><path d="M202 530 186 516 204 507 220 518Z" fill="#DEC6A5"/>';
   s+='<rect x="234" y="530" width="14" height="12" fill="#F2E5CF"/>';
   s+='<rect x="214" y="558" width="54" height="20" rx="3" fill="#FFFBF5"/><text class="bl" x="241" y="568" dominant-baseline="central">잡동사니</text>';

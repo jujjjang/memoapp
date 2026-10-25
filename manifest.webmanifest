@@ -1,6 +1,6 @@
 {
-  "name": "생각의 방",
-  "short_name": "생각의 방",
+  "name": "생각의 다락방",
+  "short_name": "생각의 다락방",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
