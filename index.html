@@ -426,6 +426,31 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 .scrap{height:clamp(200px,calc((100svh - 350px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))/2),340px)}
 .scrap.ph{padding:2px;width:auto;border:0;border-radius:2px;overflow:visible}
 .scrap.ph .sc-photo{border-width:4px}
+.gal-acts,.lb-r{display:flex;align-items:center;gap:2px}
+.gal.stack .gal-pic img{max-height:66vh}
+.gal-sub{font-size:12.5px;color:var(--muted);text-align:center}
+.q-crop{position:absolute;left:6px;bottom:6px;height:26px;padding:0 11px;border:0;border-radius:13px;background:rgba(40,32,26,.68);color:#FFFFFF;font-size:12.5px}
+.crop{position:fixed;inset:0;z-index:45;background:#1D1A17;color:#F1EBE3;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.crop-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:54px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.crop-bar b{font-size:15px;font-weight:600}
+.lb-btn.strong{color:#F2C7A6;font-weight:700;font-size:15px}
+.crop-stage{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+.crop-stage img{position:absolute;display:block;max-width:none;pointer-events:none;-webkit-user-drag:none}
+.crop-box{position:absolute;box-shadow:0 0 0 9999px rgba(18,15,13,.64);outline:1.5px solid rgba(255,255,255,.92);touch-action:none;cursor:move}
+.crop-grid{position:absolute;inset:0;pointer-events:none}
+.crop-grid::before,.crop-grid::after{content:'';position:absolute;border:0 solid rgba(255,255,255,.38)}
+.crop-grid::before{top:0;bottom:0;left:33.33%;right:33.33%;border-left-width:1px;border-right-width:1px}
+.crop-grid::after{left:0;right:0;top:33.33%;bottom:33.33%;border-top-width:1px;border-bottom-width:1px}
+.ch{position:absolute;width:44px;height:44px;touch-action:none}
+.ch::before{content:'';position:absolute;width:20px;height:20px;border:0 solid #FFFFFF}
+.ch.tl{left:-22px;top:-22px}.ch.tl::before{left:19px;top:19px;border-left-width:3.5px;border-top-width:3.5px}
+.ch.tr{right:-22px;top:-22px}.ch.tr::before{right:19px;top:19px;border-right-width:3.5px;border-top-width:3.5px}
+.ch.bl{left:-22px;bottom:-22px}.ch.bl::before{left:19px;bottom:19px;border-left-width:3.5px;border-bottom-width:3.5px}
+.ch.br{right:-22px;bottom:-22px}.ch.br::before{right:19px;bottom:19px;border-right-width:3.5px;border-bottom-width:3.5px}
+.crop-wait{position:absolute;inset:0;margin:0;display:grid;place-items:center;color:#A99D90;font-size:14px}
+.crop-ratios{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;padding:12px 16px 16px}
+.crop-ratios button{border:1px solid rgba(255,255,255,.24);background:transparent;color:#E9E1D6;border-radius:999px;min-height:34px;padding:0 14px;font-size:13.5px}
+.crop-ratios button.on{background:#F1EBE3;border-color:#F1EBE3;color:#1D1A17;font-weight:600}
 </style>
 </head>
 <body>
@@ -508,18 +533,28 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
   <div class="lb-bar">
     <button class="lb-btn" data-act="lb-close">닫기</button>
     <span id="lbCount"></span>
-    <button class="lb-btn" id="lbRemove" data-act="lb-remove">이 사진 빼기</button>
+    <span class="lb-r"><button class="lb-btn" data-act="lb-crop">자르기</button><button class="lb-btn" id="lbRemove" data-act="lb-remove">이 사진 빼기</button></span>
   </div>
   <div id="lbStrip"></div>
 </div>
 
 <div id="gal" class="gal" hidden role="dialog" aria-label="코르크보드 사진">
   <div class="gal-bar">
-    <button class="btn ghost" data-act="gal-close"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg>보드</button>
+    <button class="btn ghost" data-act="gal-close"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg><span id="galBackT">보드</span></button>
     <span id="galCount"></span>
-    <button class="btn ghost" data-act="gal-open">메모로 열기</button>
+    <span class="gal-acts"><button class="btn icon ghost" id="galCrop" data-act="gal-crop" aria-label="사진 자르기"><svg viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button><button class="btn ghost" id="galOpen" data-act="gal-open">메모로 열기</button></span>
   </div>
   <div id="galStrip" class="gal-strip"></div>
+</div>
+
+<div id="crop" class="crop" hidden role="dialog" aria-label="사진 자르기">
+  <div class="crop-bar"><button class="lb-btn" data-act="crop-cancel">취소</button><b>사진 자르기</b><button class="lb-btn strong" id="cropDone" data-act="crop-done">완료</button></div>
+  <div class="crop-stage" id="cropStage">
+    <img id="cropImg" alt="" draggable="false" hidden>
+    <div class="crop-box" id="cropBox" hidden><span class="crop-grid" aria-hidden="true"></span><i class="ch tl" data-h="tl"></i><i class="ch tr" data-h="tr"></i><i class="ch bl" data-h="bl"></i><i class="ch br" data-h="br"></i></div>
+    <p class="crop-wait" id="cropWait">사진을 불러오는 중…</p>
+  </div>
+  <div class="crop-ratios" id="cropRatios" role="group" aria-label="비율"></div>
 </div>
 
 <div id="qBack" class="scrim" hidden data-act="q-close"></div>
@@ -673,7 +708,7 @@ async function refresh(){
 function resetToAuth(){
   timers.forEach(t=>clearTimeout(t));timers.clear();
   mode='auth';me=null;myEmail='';S.docs=new Map();S.loaded=false;dirty.clear();tomb.clear();failed.clear();urls.clear();badUrl.clear();
-  applyPrefs({});panel=null;cur=null;edStack=[];['#panel','#editor','#search','#gal'].forEach(hide);galIds=[];closeQ();closeSheet();closeLB();
+  applyPrefs({});panel=null;cur=null;edStack=[];['#panel','#editor','#search','#gal'].forEach(hide);galIds=[];closeQ();closeSheet();closeLB();closeCrop();
   changed();showAuth();
 }
 async function savePrefs(){
@@ -730,7 +765,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='8';
+const APP_VERSION='9';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1072,7 +1107,7 @@ function scrapHTML(){
       return '<button class="scrap" style="--r:'+r+'deg;--sc:'+col+';--tc:'+topicCol(ct)+'" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
         '<span class="sc-tape" aria-hidden="true"></span><span class="sc-text">'+esc(txt||'빈 종이')+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span></button>'}
     return ph.map((p,k)=>{tiles++;const r=(((hs+k*3)%5)-2)*.6;
-      return '<button class="scrap ph" aria-label="'+esc('사진 '+(ph.length>1?(k+1)+'/'+ph.length:'')+(txt?' · '+txt:''))+'" style="--r:'+r+'deg" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
+      return '<button class="scrap ph" aria-label="'+esc('사진 '+(ph.length>1?(k+1)+'/'+ph.length:'')+(txt?' · '+txt:'')+' 크게 보기')+'" style="--r:'+r+'deg" data-act="scrap-view" data-id="'+d.id+'" data-k="'+k+'" data-drag-id="'+d.id+'">'+
         '<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(txt&&k===0?'<span class="sc-note" aria-hidden="true"></span>':'')+'</span></button>'}).join('')}).join('');
   h+='<button class="scrap add" data-act="scrap-new">+ 끼워넣기</button></div></div>';
   h+='<p class="hint">'+(tiles>3?'옆으로 넘겨 보세요 · ':'')+'고른 책갈피를 한 번 더 누르면 주제 이름을 바꿀 수 있어요</p>';
@@ -1128,17 +1163,48 @@ function galSlide(d){
   return '<section class="gal-item" data-id="'+d.id+'"><div class="gal-pic"><img data-p="'+esc(p)+'" src="'+esc(srcOf(p))+'" alt=""></div><div class="gal-text">'+
     '<input class="gal-title" data-id="'+d.id+'" maxlength="40" value="'+esc(d.title||'')+'" placeholder="제목" aria-label="제목" autocomplete="off">'+note+'</div></section>';
 }
-function openGal(id){
-  const items=tops('board').sort(byNew);galIds=items.map(d=>d.id);galIdx=Math.max(0,galIds.indexOf(id));
-  const st=$('#galStrip');st.innerHTML=items.map(galSlide).join('');
+let galMode='board',galKs=[];
+function galBar(){
+  const st=galMode==='stack';$('#galBackT').textContent=st?'스크랩북':'보드';
+  $('#galOpen').textContent=st?'고치기':'메모로 열기';$('#galOpen').dataset.act=st?'gal-edit':'gal-open';
+  $('#gal').setAttribute('aria-label',st?'스크랩북 사진':'코르크보드 사진');
+  $('#gal').classList.toggle('stack',st);
+}
+function galShow(html){
+  const st=$('#galStrip');st.innerHTML=html;galBar();
   $('#gal').hidden=false;st.querySelectorAll('.gal-note').forEach(size);
   requestAnimationFrame(()=>{st.scrollLeft=st.clientWidth*galIdx;galCount()});
 }
-function galCount(){$('#galCount').textContent=galIds.length?(galIdx+1)+' / '+galIds.length:''}
+function openGal(id){
+  const items=tops('board').sort(byNew);galMode='board';galKs=[];galIds=items.map(d=>d.id);galIdx=Math.max(0,galIds.indexOf(id));
+  galShow(items.map(galSlide).join(''));
+}
+/* scrapbook: every photo of the open topic, big, with its note underneath */
+function scrapSlide(d,k){
+  const p=d.photos[k],n=d.photos.length;
+  const note=isPlainDoc(d)
+    ?'<textarea class="gal-note" data-id="'+d.id+'" rows="2" placeholder="사진 설명이나 짧은 메모" aria-label="메모">'+esc(noteText(d))+'</textarea>'
+    :'<button class="gal-ro" data-act="gal-open">'+esc(titleOf(d)||preview(d)||'메모로 열기')+'</button>';
+  return '<section class="gal-item" data-id="'+d.id+'"><div class="gal-pic"><img data-p="'+esc(p)+'" src="'+esc(srcOf(p))+'" alt=""></div><div class="gal-text">'+
+    (n>1?'<span class="gal-sub">같이 끼운 사진 '+(k+1)+' / '+n+'</span>':'')+note+'</div></section>';
+}
+function openScrapGal(id,k){
+  const ct=panel&&panel.topic;
+  const items=tops('stack').filter(d=>topicOf(d)===ct&&(d.photos||[]).length).sort(byNew);
+  galMode='stack';galIds=[];galKs=[];
+  items.forEach(d=>d.photos.forEach((p,i)=>{galIds.push(d.id);galKs.push(i)}));
+  if(!galIds.length)return;
+  galIdx=Math.max(0,galIds.findIndex((x,i)=>x===id&&galKs[i]===(k||0)));
+  galShow(galIds.map((x,i)=>scrapSlide(get(x),galKs[i])).join(''));
+}
+function galCount(){
+  $('#galCount').textContent=galIds.length?(galIdx+1)+' / '+galIds.length:'';
+  const d=get(galIds[galIdx]);$('#galCrop').hidden=!(d&&canPhoto()&&(d.photos||[])[galMode==='stack'?galKs[galIdx]:0]);
+}
 function closeGal(){
   if($('#gal').hidden)return;
-  galIds.forEach(id=>{const d=get(id);if(d&&d.place==='board'&&isEmpty(d)&&!boardBusy.has(id))del(id);else flushNow(id)});
-  $('#gal').hidden=true;$('#galStrip').innerHTML='';galIds=[];renderPanel();
+  [...new Set(galIds)].forEach(id=>{const d=get(id);if(galMode==='board'&&d&&d.place==='board'&&isEmpty(d)&&!boardBusy.has(id))del(id);else flushNow(id)});
+  $('#gal').hidden=true;$('#galStrip').innerHTML='';galIds=[];galKs=[];renderPanel();
 }
 function galImgs(){if($('#gal').hidden)return;$('#galStrip').querySelectorAll('img[data-p]').forEach(img=>{const u=srcOf(img.dataset.p);if(img.getAttribute('src')!==u)img.src=u})}
 function fromLabel(d){return d.from==='drawer'?'서랍 · '+shelfName(d.fromShelf||1)+'에서':(PLACE[d.from]||'상자')+'에서'}
@@ -1169,7 +1235,7 @@ function openQ(id){
 function renderQTopics(){if(!q)return;$('#qTopics').innerHTML=topics.map(t=>'<button class="q-chip'+(t.id===q.topic?' on':'')+'" data-act="q-topic" data-t="'+t.id+'" style="--bm:'+topicCol(t.id)+'" aria-pressed="'+(t.id===q.topic)+'">'+esc(t.name)+'</button>').join('')}
 function renderQPhotos(){
   const el=$('#qPhotos');if(!q)return;const any=q.photos.length||q.busy;
-  let h=q.photos.map((p,i)=>'<div class="q-ph'+(q.rm===i?' armed':'')+'"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="사진 '+(i+1)+'"><button class="q-x" data-act="q-ph" data-i="'+i+'" aria-label="'+(q.rm===i?'한 번 더 누르면 사진이 빠져요':'사진 빼기')+'">'+(q.rm===i?'빼기':'×')+'</button></div>').join('');
+  let h=q.photos.map((p,i)=>'<div class="q-ph'+(q.rm===i?' armed':'')+'"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="사진 '+(i+1)+'"><button class="q-x" data-act="q-ph" data-i="'+i+'" aria-label="'+(q.rm===i?'한 번 더 누르면 사진이 빠져요':'사진 빼기')+'">'+(q.rm===i?'빼기':'×')+'</button>'+(canPhoto()?'<button class="q-crop" data-act="q-crop" data-i="'+i+'">자르기</button>':'')+'</div>').join('');
   for(let i=0;i<q.busy;i++)h+='<div class="q-ph busy">올리는 중…</div>';
   if(canPhoto())h+='<button class="q-add'+(any?'':' big')+'" data-act="q-ph-add">'+(any?'+ 사진':'<span class="q-add-ic" aria-hidden="true">+</span>사진 넣기')+'</button>';
   el.innerHTML=h;
@@ -1437,6 +1503,89 @@ function lbCount(){if(cur)$('#lbCount').textContent=(lbIdx+1)+' / '+cur.photos.l
 function closeLB(){$('#lightbox').hidden=true}
 $('#lbStrip').addEventListener('scroll',()=>{const st=$('#lbStrip');lbIdx=Math.round(st.scrollLeft/Math.max(1,st.clientWidth));lbCount()});
 
+/* crop: drag the box or its corners, then the cut part is saved as a new photo */
+let crop=null;
+const RATIOS=[['자유',0],['1:1',1],['3:4',3/4],['4:3',4/3],['9:16',9/16]];
+const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
+async function photoBlob(p){
+  p=String(p);
+  if(!p.startsWith('data:')&&mode==='cloud'&&sb){try{const {data,error}=await sb.storage.from('photos').download(p);if(!error&&data)return data}catch(e){}}
+  const r=await fetch(p.startsWith('data:')?p:srcOf(p));if(!r.ok)throw new Error('load');return await r.blob();
+}
+async function openCrop(p,done){
+  const ae=document.activeElement;if(ae&&ae.blur)ae.blur();
+  const c={p,done,ratio:0,ready:false,busy:false};crop=c;
+  $('#cropRatios').innerHTML=RATIOS.map(([t,r])=>'<button class="'+(r?'':'on')+'" data-act="crop-ratio" data-r="'+r+'" aria-pressed="'+(!r)+'">'+t+'</button>').join('')+'<button data-act="crop-all">전체</button>';
+  $('#cropImg').hidden=true;$('#cropBox').hidden=true;$('#cropWait').hidden=false;$('#cropDone').textContent='완료';$('#crop').hidden=false;
+  try{
+    const blob=await photoBlob(p);if(crop!==c)return;
+    c.url=URL.createObjectURL(blob);const img=$('#cropImg');
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=c.url});
+    if(crop!==c)return;
+    c.nw=img.naturalWidth;c.nh=img.naturalHeight;if(!c.nw||!c.nh)throw new Error('size');
+    c.b={x:0,y:0,w:c.nw,h:c.nh};c.ready=true;
+    $('#cropWait').hidden=true;img.hidden=false;$('#cropBox').hidden=false;layoutCrop();
+  }catch(e){if(crop===c){toast('사진을 불러오지 못했어요');closeCrop()}}
+}
+function closeCrop(){const c=crop;crop=null;$('#crop').hidden=true;$('#cropImg').removeAttribute('src');if(c&&c.url)URL.revokeObjectURL(c.url)}
+function layoutCrop(){
+  const c=crop;if(!c||!c.ready)return;const st=$('#cropStage'),pad=24;
+  c.s=Math.min((st.clientWidth-pad*2)/c.nw,(st.clientHeight-pad*2)/c.nh);
+  const dw=c.nw*c.s,dh=c.nh*c.s;c.ox=(st.clientWidth-dw)/2;c.oy=(st.clientHeight-dh)/2;
+  $('#cropImg').style.cssText='left:'+c.ox+'px;top:'+c.oy+'px;width:'+dw+'px;height:'+dh+'px';drawCrop();
+}
+function drawCrop(){const c=crop,b=c.b;$('#cropBox').style.cssText='left:'+(c.ox+b.x*c.s)+'px;top:'+(c.oy+b.y*c.s)+'px;width:'+(b.w*c.s)+'px;height:'+(b.h*c.s)+'px'}
+function setCropRatio(r){
+  const c=crop;if(!c||!c.ready)return;c.ratio=r;
+  $('#cropRatios').querySelectorAll('[data-r]').forEach(b=>{const on=+b.dataset.r===r;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
+  if(!r)return;
+  let w=c.nw,h=w/r;if(h>c.nh){h=c.nh;w=h*r}
+  const cx=c.b.x+c.b.w/2,cy=c.b.y+c.b.h/2;
+  c.b={w,h,x:clampN(cx-w/2,0,c.nw-w),y:clampN(cy-h/2,0,c.nh-h)};drawCrop();
+}
+const cropSt=$('#cropStage');
+cropSt.addEventListener('pointerdown',e=>{
+  const c=crop;if(!c||!c.ready||c.busy)return;
+  const h=e.target.closest('[data-h]');if(!h&&!e.target.closest('#cropBox'))return;
+  e.preventDefault();c.drag={m:h?h.dataset.h:'move',x:e.clientX,y:e.clientY,b:{...c.b},id:e.pointerId};
+  try{cropSt.setPointerCapture(e.pointerId)}catch(_){}
+});
+cropSt.addEventListener('pointermove',e=>{
+  const c=crop;if(!c||!c.drag||e.pointerId!==c.drag.id)return;e.preventDefault();
+  const g=c.drag,b0=g.b,dx=(e.clientX-g.x)/c.s,dy=(e.clientY-g.y)/c.s,NW=c.nw,NH=c.nh,mn=Math.min(48/c.s,NW,NH);
+  if(g.m==='move'){c.b={...b0,x:clampN(b0.x+dx,0,NW-b0.w),y:clampN(b0.y+dy,0,NH-b0.h)};drawCrop();return}
+  const L=g.m[1]==='l',T=g.m[0]==='t';
+  const ax=L?b0.x+b0.w:b0.x,ay=T?b0.y+b0.h:b0.y;
+  const px=(L?b0.x:b0.x+b0.w)+dx,py=(T?b0.y:b0.y+b0.h)+dy;
+  const maxW=L?ax:NW-ax,maxH=T?ay:NH-ay;
+  let w=clampN(L?ax-px:px-ax,mn,maxW),h=clampN(T?ay-py:py-ay,mn,maxH);
+  if(c.ratio){const r=c.ratio;if(w/h>r)h=w/r;else w=h*r;if(w>maxW){w=maxW;h=w/r}if(h>maxH){h=maxH;w=h*r}}
+  c.b={x:L?ax-w:ax,y:T?ay-h:ay,w,h};drawCrop();
+});
+const endCropDrag=e=>{if(crop&&crop.drag&&e.pointerId===crop.drag.id)crop.drag=null};
+cropSt.addEventListener('pointerup',endCropDrag);cropSt.addEventListener('pointercancel',endCropDrag);
+window.addEventListener('resize',()=>{if(crop&&crop.ready)layoutCrop()});
+async function cropDone(){
+  const c=crop;if(!c||!c.ready||c.busy)return;const b=c.b;
+  if(b.x<1&&b.y<1&&b.w>c.nw-2&&b.h>c.nh-2){closeCrop();return}
+  c.busy=true;$('#cropDone').textContent='저장 중…';
+  let ref=null;
+  try{
+    const k=Math.min(1,(mode==='cloud'?1600:900)/Math.max(b.w,b.h));
+    const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(b.w*k));cv.height=Math.max(1,Math.round(b.h*k));
+    const x=cv.getContext('2d');x.fillStyle='#ffffff';x.fillRect(0,0,cv.width,cv.height);x.drawImage($('#cropImg'),b.x,b.y,b.w,b.h,0,0,cv.width,cv.height);
+    if(mode==='cloud'){
+      const blob=await new Promise((res,rej)=>cv.toBlob(o=>o?res(o):rej(new Error('blob')),'image/jpeg',.88));
+      const path=me+'/'+uid()+'.jpg';const {error}=await sb.storage.from('photos').upload(path,blob,{contentType:'image/jpeg',upsert:false});if(error)throw error;
+      urls.set(path,{url:URL.createObjectURL(blob),exp:now()+11*3600e3});ref=path;
+    }else ref=cv.toDataURL('image/jpeg',.8);
+  }catch(e){if(crop===c){c.busy=false;$('#cropDone').textContent='완료'}upErr(e);return}
+  if(crop!==c){dropAsset(ref);return}
+  closeCrop();c.done(ref,c.p);toast('사진을 잘랐어요');
+}
+/* swap one photo for its cropped copy inside a saved memo */
+function swapPhoto(id,old,ref){const d=get(id);if(!d){dropAsset(ref);return -1}const ph=[...(d.photos||[])],i=ph.indexOf(old);if(i<0){dropAsset(ref);return -1}ph[i]=ref;put({...d,photos:ph});dropAsset(old);return i}
+
 /* search */
 function renderSearch(){
   if($('#search').hidden)return;
@@ -1552,6 +1701,19 @@ document.addEventListener('click',e=>{
     case 'board-photo':pickTarget='newBoard';$('#fileIn').click();break;
     case 'gal':openGal(a.dataset.id);break;
     case 'gal-close':closeGal();break;
+    case 'gal-edit':{const id=galIds[galIdx];closeGal();if(id&&get(id))openQ(id);break}
+    case 'gal-crop':{const id=galIds[galIdx],k=galMode==='stack'?galKs[galIdx]:0,d=get(id),p=d&&(d.photos||[])[k];if(!p)break;
+      openCrop(p,(ref,old)=>{const i=swapPhoto(id,old,ref);if(i<0||$('#gal').hidden)return;if(galMode==='stack')openScrapGal(id,i);else openGal(id)});break}
+    case 'scrap-view':openScrapGal(a.dataset.id,+a.dataset.k||0);break;
+    case 'crop-cancel':closeCrop();break;
+    case 'crop-done':cropDone();break;
+    case 'crop-ratio':setCropRatio(+a.dataset.r||0);break;
+    case 'crop-all':if(crop&&crop.ready){crop.b={x:0,y:0,w:crop.nw,h:crop.nh};setCropRatio(0);drawCrop()}break;
+    case 'lb-crop':{if(!cur)break;const id=cur.id,p=cur.photos[lbIdx];if(!p)break;
+      openCrop(p,(ref,old)=>{let i=-1;if(cur&&cur.id===id){i=cur.photos.indexOf(old);if(i<0){dropAsset(ref);return}cur.photos[i]=ref;saveCur(0);dropAsset(old);renderPhotos()}else i=swapPhoto(id,old,ref);
+        if(i>=0&&!$('#lightbox').hidden&&cur&&cur.id===id)openLB(i)});break}
+    case 'q-crop':{if(!q)break;const qq=q,p=q.photos[+a.dataset.i];if(!p)break;
+      openCrop(p,(ref,old)=>{const j=qq.photos.indexOf(old);if(j<0){dropAsset(ref);return}qq.photos[j]=ref;if(qq.orig.includes(old))qq.dropped.push(old);else dropAsset(old);if(q===qq)renderQPhotos()});break}
     case 'gal-open':{const id=galIds[galIdx];closeGal();if(id&&get(id)){edStack=[];cur=null;openEditor(id)}break}
     case 'ed-back':closeMore();edBack();break;
     case 'more':{const m=$('#moreMenu'),open=m.hidden;m.hidden=!open;$('#moreBtn').setAttribute('aria-expanded',String(open));break}
@@ -1674,7 +1836,8 @@ galStrip.addEventListener('scroll',()=>{galIdx=Math.round(galStrip.scrollLeft/Ma
 galStrip.addEventListener('input',e=>{
   const t=e.target,id=t.dataset.id;if(!id)return;const d=get(id);if(!d)return;
   if(t.classList.contains('gal-title'))put({...d,title:t.value},600);
-  else if(t.classList.contains('gal-note')||t.classList.contains('gal-paper-x')){if(t.classList.contains('gal-note'))size(t);put({...d,blocks:t.value.split('\n').map(x=>({t:'p',x}))},600)}
+  else if(t.classList.contains('gal-note')||t.classList.contains('gal-paper-x')){if(t.classList.contains('gal-note'))size(t);put({...d,blocks:t.value.split('\n').map(x=>({t:'p',x}))},600);
+    galStrip.querySelectorAll('.gal-note').forEach(o=>{if(o!==t&&o.dataset.id===id){o.value=t.value;size(o)}})}
 });
 galStrip.addEventListener('keydown',e=>{
   const t=e.target;
@@ -1682,7 +1845,8 @@ galStrip.addEventListener('keydown',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
-  if(!$('#qsheet').hidden)saveQ();
+  if(crop)closeCrop();
+  else if(!$('#qsheet').hidden)saveQ();
   else if(!$('#lightbox').hidden)closeLB();
   else if(!$('#sheet').hidden)closeSheet();
   else if(!$('#gal').hidden)closeGal();
