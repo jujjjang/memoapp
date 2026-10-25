@@ -41,7 +41,7 @@
   --wash-a:#EAE6D7;--wash-b:#EFECE2;--wash-c:#F3F1E8;--navbg:rgba(243,241,232,.92);
   --accent:#485E6C;--accent-2:#C99896;--on-accent:#FFFFFF;--danger:#B3402E;--nest:#F7F5EE;
   --n1:#EFE7CF;--n2:#E0E6EA;--n3:#F2DAD8;--n4:#E7E1E3;
-  --cork:#E3C7C4;--cork-dot:#D2B1AE;--wood:#B7AEB1;--tape:#CDD5DA;
+  --cork:#DED8CE;--cork-dot:#CFC7BC;--wood:#B7AEB1;--tape:#CDD5DA;
   --shadow:rgba(51,52,57,.2);--scrim:rgba(30,32,38,.42);
   --wall:#E7E4D8;--hud-ink:#333439;--hud-sub:#7C7378;--pill-bg:rgba(255,254,249,.9);--pill-ink:#6E6669;--label-ink:#7C6E72;--fab:#485E6C;--fab-sh:rgba(40,55,65,.55);--glow:rgba(72,94,108,.45);
 }
@@ -658,7 +658,7 @@ const SKINS={
     '#F3ECE2':'#EDD4D1','#E5D8C6':'#DDBDBA','#8E765D':'#5F5860','#8C7458':'#5F5860','#7A5A3C':'#4A4448',
     '#FAF6F0':'#FBFAF4','#D9CAB6':'#D3CDBE','#E4D3BE':'#E8C2C0','#CDB89D':'#93888C','#EAE0D2':'#E6E2D6',
     '#B9A58C':'#93888C','#A97A5E':'#333439','#C99277':'#485E6C',
-    '#DCC1A0':'#A69C9F','#D9BC97':'#E9CDCA','#C7A880':'#D8B5B2','#E4CDAE':'#F3E0DE',
+    '#DCC1A0':'#CFC7C2','#D9BC97':'#E1DBD1','#C7A880':'#D2CABF','#E4CDAE':'#ECE8E0',
     '#D6B189':'#5B7180','#C9A47C':'#4D6271','#C99E73':'#3F5260','#A9825E':'#3A4A55','#CDA67C':'#5B7180',
     '#F4ECE1':'#F1EEE2','#E6DACA':'#DCD7C6','#B88D64':'#93888C','#E6CDAA':'#C9C1C4','#7E5F43':'#2C3A43',
     '#F1E5D2':'#ECE7DA','#E2D6C4':'#DAD5C8','#D8CCBA':'#D3CEC2',
@@ -868,7 +868,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='12';
+const APP_VERSION='13';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
