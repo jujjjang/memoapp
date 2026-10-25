@@ -849,7 +849,7 @@ function skinThumb(id){
 }
 function renderSettings(){
   if($('#settings').hidden)return;
-  $('#timeList').innerHTML=Object.entries(ROOM_TIMES).map(([id,label])=>'<button class="time-option" role="radio" aria-checked="'+(roomTime===id)+'" data-act="room-time" data-time="'+id+'">'+(id==='auto'?'<span class="time-auto" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l4 2.5"/></svg></span>':'<span aria-hidden="true" style="background-image:url(assets/room-v4/view-'+id+'.svg)"></span>')+'<b>'+label+'</b></button>').join('');
+  $('#timeList').innerHTML=Object.entries(ROOM_TIMES).map(([id,label])=>'<button class="time-option" role="radio" aria-checked="'+(roomTime===id)+'" data-act="room-time" data-time="'+id+'">'+(id==='auto'?'<span class="time-auto" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l4 2.5"/></svg></span>':'<span aria-hidden="true" style="background-image:url(assets/room-v5/view-'+id+'.svg)"></span>')+'<b>'+label+'</b></button>').join('');
   $('#skinList').innerHTML=Object.keys(SKINS).map(id=>{const k=SKINS[id],on=id===skin;
     return '<button class="skin'+(on?' on':'')+'" role="radio" aria-checked="'+on+'" data-act="skin" data-skin="'+id+'">'+skinThumb(id)+'<b>'+esc(k.name)+'</b><span class="sw">'+k.sw.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span></button>'}).join('');
   $('#acctWrap').hidden=mode!=='cloud';$('#acctEmail').textContent=myEmail?myEmail+' 계정으로 쓰는 중':'';
@@ -1066,7 +1066,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='31';
+const APP_VERSION='32';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1242,17 +1242,24 @@ function cozyDesktop(surface,id){
 }
 function cozyNightLights(id){
   const main=id==='a',a=loftGeometry();
-  const x0=main?12:a.x+7,x1=main?170:a.x+a.size-8,cy=main?117:a.floor+24,y0=main?103:a.floor+5;
-  let s='<g class="night-lighting" data-mount="'+(main?'window-top':'loft-underside')+'" pointer-events="none" aria-hidden="true">';
-  s+='<path d="M'+f(x0)+' '+f(y0)+'Q'+f((x0+x1)/2)+' '+f(cy)+' '+f(x1)+' '+f(y0)+'" fill="none" stroke="#8D7962" stroke-width=".7"/>'+
-    '<circle cx="'+f(x0)+'" cy="'+f(y0)+'" r="1" fill="#9B876E"/><circle cx="'+f(x1)+'" cy="'+f(y0)+'" r="1" fill="#9B876E"/>';
+  const x0=main?170:a.x+8,x1=main?358:Math.min(357,a.x+a.size-8),cy=main?177:a.floor+44,y0=main?121:a.rail,y1=main?136:a.rail;
+  let s='<g class="night-lighting" data-mount="'+(main?'board-side':'loft-railing')+'" pointer-events="none" aria-hidden="true">';
+  s+='<path d="M'+f(x0)+' '+f(y0)+'Q'+f((x0+x1)/2)+' '+f(cy)+' '+f(x1)+' '+f(y1)+'" fill="none" stroke="#8D7962" stroke-width=".7"/>'+
+    '<circle cx="'+f(x0)+'" cy="'+f(y0)+'" r="1" fill="#9B876E"/><circle cx="'+f(x1)+'" cy="'+f(y1)+'" r="1" fill="#9B876E"/>';
   for(const t of [.1,.3,.5,.7,.9]){
-    const x=x0+(x1-x0)*t,y=(1-t)*(1-t)*y0+2*(1-t)*t*cy+t*t*y0;
+    const x=x0+(x1-x0)*t,y=(1-t)*(1-t)*y0+2*(1-t)*t*cy+t*t*y1;
     s+='<ellipse cx="'+f(x)+'" cy="'+f(y+5)+'" rx="18" ry="23" fill="url(#warm-'+id+')" opacity=".34"/>'+
       '<path d="M'+f(x)+' '+f(y)+'v3" stroke="#A18A69" stroke-width="1.4"/><ellipse cx="'+f(x)+'" cy="'+f(y+5.2)+'" rx="2.5" ry="3.1" fill="#FFE8AF"/>';
   }
   if(main){const surface=deskSurface();s+='<ellipse cx="301" cy="'+f(surface-84)+'" rx="43" ry="57" fill="url(#warm-'+id+')" opacity=".25"/><path d="M285 '+f(surface-104)+'h32l9 37h-50Z" fill="#FFE4A2" opacity=".3"/>';}
   return s+'</g>';
+}
+
+function windowLight(id,P,layer){
+  if(P==='night')return '';
+  const dusk=P==='dusk',col=dusk?'#FFE1CC':'#FFF7E9';
+  if(layer==='wall')return '<g class="window-light" data-layer="wall" fill="'+col+'" opacity="'+(dusk?.64:.6)+'" pointer-events="none"><path d="M175 178 198 161V468L175 488Z"/><path d="M208 152 229 136V448L208 465Z"/></g>';
+  return '<g class="window-light" data-layer="floor" fill="'+(dusk?'#F8DCC6':'#FFFCF4')+'" opacity="'+(dusk?.52:.5)+'" pointer-events="none"><path d="M'+(id==='a'?'88 628h44l23 58h-44Z':'18 628h44l23 58H41Z')+'"/><path d="M'+(id==='a'?'142 628h19l23 58h-19Z':'72 628h19l23 58H95Z')+'"/></g>';
 }
 
 function cozyRug(id,offset){
@@ -1263,10 +1270,11 @@ function cozyCurtain(id){
   return '<path d="M-1 117H173" stroke="#CEB89A" stroke-width="1.4" stroke-linecap="round"/>'+furnitureArt('curtain',-7,113,w,h,id,'top');
 }
 function cozyWindow(id,P,L,curtain=true){
-  const a=FURNITURE_ART['window-frame'],frame=furnitureLayout('window-frame',id==='b'?12:6,119,id==='b'?132:166,234,'top'),k=frame.w/a.box[2],g=a.glass;
-  const x=frame.x+(g[0]-a.box[0])*k,y=frame.y+(g[1]-a.box[1])*k,w=g[2]*k,h=g[3]*k,clip='window-glass-'+id,view={src:'assets/room-v4/view-'+P+'.svg'};
+  const a=FURNITURE_ART['window-frame'],frame=furnitureLayout('window-frame',6,119,166,234,'top'),k=frame.w/a.box[2],g=a.glass;
+  const x=frame.x+(g[0]-a.box[0])*k,y=frame.y+(g[1]-a.box[1])*k,w=g[2]*k,h=g[3]*k,clip='window-glass-'+id,view={src:'assets/room-v5/view-'+P+'.svg'};
   let s='<defs><clipPath id="'+clip+'"><rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" rx="1"/></clipPath></defs>'+
     '<image class="window-scenery" data-period="'+P+'" href="'+view.src+'" x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#'+clip+')"/>';
+  if(P!=='night')s+='<g class="glass-reflection" clip-path="url(#'+clip+')" stroke="#FFFCF5" fill="none" stroke-linecap="round" opacity="'+(P==='day'?.32:.4)+'"><path d="M'+f(x+w*.87)+' '+f(y+h*.07)+' '+f(x+w*.62)+' '+f(y+h*.28)+'" stroke-width="3.6"/><path d="M'+f(x+w*.96)+' '+f(y+h*.13)+' '+f(x+w*.76)+' '+f(y+h*.3)+'" stroke-width="1.6"/><path d="M'+f(x+w*.25)+' '+f(y+h*.57)+' '+f(x+w*.02)+' '+f(y+h*.79)+'" stroke-width="2.7"/></g>';
   s+=furnitureArt('window-frame',frame.x,frame.y,frame.w,frame.h,id,'top');
   const px=frame.x+frame.w*.82,base=frame.y+frame.h-5;
   s+=leaf(px,base-11,px-8,base-29,4,'#93AC95')+leaf(px,base-11,px+9,base-31,4.5,'#7F9A84')+leaf(px,base-11,px+1,base-36,4,'#A7BDA6')+
@@ -1317,12 +1325,12 @@ function continuousDesk(offset){
 function drawHomeImages(c,P,L){
   const art=(name,x,y,w,h,anchor)=>furnitureArt(name,x,y,w,h,'a',anchor);
   const cabinet=furnitureLayout('drawer-cabinet',36,398,152,214),cabinetSurface=cabinet.y+cabinet.h*(FURNITURE_ART['drawer-cabinet'].surface??.045),surface=deskSurface();
-  let s=cozyRoomBase('a');
+  let s=cozyRoomBase('a')+windowLight('a',P,'wall');
   s+=cozyWindow('a',P,L);
   s+='<path d="M272 -1600V119" stroke="#B9A58C" stroke-width="1.1"/>'+art('pendant-shade',246,118,52,35,'top');
   s+=furn('board','코르크보드')+'<rect class="tap" x="180" y="156" width="168" height="187"/>';
   s+=corkPanel(186,164,156,140,'a')+'<g transform="translate(0 -12)">'+drawBoardNotes()+'</g>'+pill(264,325,'코르크보드')+'</g>';
-  s+=cozyRug('a',0);
+  s+=cozyRug('a',0)+windowLight('a',P,'floor');
   s+=continuousDesk(0);
   s+=art('drawer-cabinet',36,398,152,214);
   // Hit areas follow the three white drawer fronts in the illustration.
@@ -1383,48 +1391,57 @@ function monthsWithMemos(){const set=new Set();all().forEach(d=>{if(d.place==='t
 
 /* The study uses the same desk and window geometry as the first page. */
 function loftGeometry(){
-  const x=178,y=62,size=180,k=size/330;
-  return {x,y,size,k,floor:y+(556-270)*k,left:x+(658-410)*k,right:x+(724-410)*k};
+  const x=195,y=0,size=180,k=size/330;
+  return {x,y,size,k,rail:y+(474-270)*k,floor:y+(556-270)*k,left:x+(658-410)*k,right:x+(724-410)*k};
 }
 function studyLadder(){
-  const a=loftGeometry(),top=a.floor+8,bottom=566;
-  let s=navf('up','사다리로 옥탑방 올라가기')+'<rect class="tap" x="'+f(a.left-5)+'" y="'+f(top)+'" width="'+f(a.right-a.left+10)+'" height="'+f(bottom-top+4)+'"/>';
-  s+='<g class="connected-ladder" data-top="'+f(top)+'" data-bottom="566" pointer-events="none">';
-  for(let y=top+22;y<bottom-7;y+=29)s+='<path d="M'+f(a.left)+' '+f(y)+'H'+f(a.right)+'" stroke="#C6A17C" stroke-width="2.8" stroke-linecap="round"/>';
-  s+='<path d="M'+f(a.left)+' '+f(top)+'V566M'+f(a.right)+' '+f(top)+'V566" fill="none" stroke="#C8A580" stroke-width="4.2" stroke-linecap="round"/>'+
-    '<path d="M'+f(a.left-.6)+' '+f(top+2)+'V564M'+f(a.right-.6)+' '+f(top+2)+'V564" stroke="#E0C7A6" stroke-width=".7" opacity=".7"/>';
+  const a=loftGeometry(),top=a.floor,bottom=500,lean=.25,dx=(bottom-top)*lean;
+  let s=navf('up','사다리로 옥탑방 올라가기')+'<path class="tap" d="M'+f(a.left-5)+' '+f(top)+'H'+f(a.right+5)+'L'+f(a.right+dx+5)+' '+bottom+'H'+f(a.left+dx-5)+'Z"/>';
+  s+='<g class="connected-ladder" data-direction="right" data-top="'+f(top)+'" data-bottom="500" pointer-events="none">';
+  for(let y=top+22;y<bottom-7;y+=29){const shift=(y-top)*lean;s+='<path d="M'+f(a.left+shift)+' '+f(y)+'H'+f(a.right+shift)+'" stroke="#C6A17C" stroke-width="2.8" stroke-linecap="round"/>';}
+  s+='<path d="M'+f(a.left)+' '+f(top)+' '+f(a.left+dx)+' '+bottom+'M'+f(a.right)+' '+f(top)+' '+f(a.right+dx)+' '+bottom+'" fill="none" stroke="#C8A580" stroke-width="4.2" stroke-linecap="round"/>';
   return s+'</g></g>';
+}
+function threeTierBookcase(){
+  const a=FURNITURE_ART.bookcase,w=100,k=w/a.box[2],strips=[[83,361],[444,283],[1285,313]],height=957*k,x=152,y=572-height;
+  let at=0;
+  return '<svg class="bookcase-three" data-tiers="3" x="'+x+'" y="'+f(y)+'" width="'+w+'" height="'+f(height)+'" viewBox="0 0 491 957" preserveAspectRatio="xMidYMid meet" overflow="hidden" pointer-events="none" aria-hidden="true"><g filter="url(#furniture-pastel-b)">'+strips.map(([sy,h])=>{const oy=at;at+=h;return '<svg x="0" y="'+oy+'" width="491" height="'+h+'" viewBox="223 '+sy+' 491 '+h+'" overflow="hidden"><image href="'+a.src+'" width="'+a.width+'" height="'+a.height+'"/></svg>';}).join('')+'</g></svg>';
+}
+function loftDaylight(P){
+  if(P!=='day')return '';
+  return '<defs><radialGradient id="loft-lamp-fade" gradientUnits="userSpaceOnUse" cx="506" cy="414" r="96"><stop stop-color="#FFFFFF"/><stop offset=".45" stop-color="#FFFFFF" stop-opacity=".9"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient><mask id="loft-lamp-mask" maskUnits="userSpaceOnUse" x="410" y="315" width="200" height="200"><rect x="410" y="315" width="200" height="200" fill="url(#loft-lamp-fade)"/></mask><filter id="loft-light-off" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncR type="table" tableValues="0 .25 .48 .63 .72"/><feFuncG type="table" tableValues="0 .25 .48 .63 .72"/><feFuncB type="table" tableValues="0 .25 .49 .68 .8"/></feComponentTransfer></filter></defs><g clip-path="url(#loft-reference-crop)"><image class="loft-day-lamp" href="assets/loft-reference-source.jpg" width="747" height="1536" filter="url(#loft-light-off)" mask="url(#loft-lamp-mask)"/><ellipse cx="511" cy="413" rx="14" ry="18" fill="#BEA78C" stroke="#A98D6C" stroke-width="1" opacity="1"/></g>';
 }
 
 function drawStudy(c,P,L){
   const art=(name,x,y,w,h,anchor)=>furnitureArt(name,x,y,w,h,'b',anchor),surface=deskSurface();
-  let s=cozyRoomBase('b');
-  s+=cozyWindow('b',P,L,false)+cozyRug('b',360)+studyLadder();
+  let s=cozyRoomBase('b')+windowLight('b',P,'wall');
+  s+=cozyWindow('b',P,L,false)+cozyRug('b',360)+windowLight('b',P,'floor')+studyLadder();
   s+=continuousDesk(360);
 
-  s+=furn('dday','작은 그림 · 기념일 보기')+'<rect class="tap" x="151" y="251" width="48" height="63"/>'+
-    '<g class="wall-picture" pointer-events="none"><rect x="155" y="255" width="42" height="42" rx="1.5" fill="#CDA67C"/><rect x="158" y="258" width="36" height="36" fill="#F4ECE1"/><circle cx="181" cy="269" r="6" fill="#D6AAA0"/><path d="M162 290v-9a8 8 0 0 1 16 0v9Z" fill="#A5B59F"/><path d="M181 290v-5a5 5 0 0 1 10 0v5Z" fill="#D9C7AA"/></g></g>';
+  s+=furn('dday','작은 그림 · 기념일 보기')+'<rect class="tap" x="181" y="256" width="48" height="50"/>'+
+    '<g class="wall-picture" transform="translate(30 5)" pointer-events="none"><rect x="155" y="255" width="42" height="42" rx="1.5" fill="#CDA67C"/><rect x="158" y="258" width="36" height="36" fill="#F4ECE1"/><circle cx="181" cy="269" r="6" fill="#D6AAA0"/><path d="M162 290v-9a8 8 0 0 1 16 0v9Z" fill="#A5B59F"/><path d="M181 290v-5a5 5 0 0 1 10 0v5Z" fill="#D9C7AA"/></g></g>';
 
   s+=soonf('pc','컴퓨터')+'<rect class="tap" x="17" y="375" width="137" height="109"/>';
   s+=art('computer',25,surface-73,124,73)+pill(80,477,'컴퓨터')+'</g>';
   s+=art('wooden-stool',48,528,53,76);
-  s+=soonf('shelf','책장')+'<rect class="tap" x="149" y="304" width="86" height="291"/>';
-  s+=art('bookcase',150,296,84,271)+pill(192,582,'책장')+'</g>';
+  s+=soonf('shelf','책장')+'<rect class="tap" x="151" y="371" width="102" height="227"/>';
+  s+=threeTierBookcase()+pill(202,588,'책장')+'</g>';
 
-  s+=furn('wish','행거 · 위시리스트')+'<rect class="tap" x="237" y="315" width="104" height="281"/>';
-  const rack=furnitureLayout('clothes-rail',237,297,104,269),bar=rack.y+rack.h*(FURNITURE_ART['clothes-rail'].bar??.018);
-  s+=art('clothes-rail',237,297,104,269);
-  const nw=Math.min(4,c.wish),xs=[308,296,281,269],widths=[56,56,58,59];
-  if(!nw)[272,308].forEach(x=>{s+='<path d="M'+x+' '+f(bar+9)+'v-5a2 2 0 1 1 2-2M'+(x-11)+' '+f(bar+15)+' '+x+' '+f(bar+8)+' '+(x+11)+' '+f(bar+15)+'Z" fill="none" stroke="#8C7458" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round"/>'});
+  s+=furn('wish','행거 · 위시리스트')+'<rect class="tap" x="255" y="319" width="102" height="281"/>';
+  const rack=furnitureLayout('clothes-rail',255,297,102,269),bar=rack.y+rack.h*(FURNITURE_ART['clothes-rail'].bar??.018);
+  s+=art('clothes-rail',255,297,102,269);
+  const nw=Math.min(4,c.wish),xs=[325,313,298,286],widths=[55,55,57,58];
+  if(!nw)[289,325].forEach(x=>{s+='<path d="M'+x+' '+f(bar+9)+'v-5a2 2 0 1 1 2-2M'+(x-11)+' '+f(bar+15)+' '+x+' '+f(bar+8)+' '+(x+11)+' '+f(bar+15)+'Z" fill="none" stroke="#8C7458" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round"/>'});
   for(let k=nw-1;k>=0;k--)s+=art('garment-'+k,xs[k]-widths[k]/2,bar,widths[k],160,'top');
   const shoeCat=wcats.filter(c=>/신발|슈즈|shoe/i.test(c.name)).map(c=>c.id);
-  if(tops('wish').some(d=>!d.bought&&shoeCat.includes(d.cat)))s+='<path d="M244 537c0-5 2-8 5-8s3 3 7 4 6 2 6 4Z" fill="#C48B74"/>';
-  s+=pill(289,582,'행거')+'</g>';
+  if(tops('wish').some(d=>!d.bought&&shoeCat.includes(d.cat)))s+='<path d="M262 537c0-5 2-8 5-8s3 3 7 4 6 2 6 4Z" fill="#C48B74"/>';
+  s+=pill(306,588,'행거')+'</g>';
 
   /* Keep the approved attic artwork and its independent ladder navigation. */
-  s+=navf('up','옥탑방으로 올라가기')+'<rect class="tap" x="176" y="60" width="184" height="184"/>';
-  s+='<svg class="loft-nook" x="178" y="62" width="180" height="180" viewBox="410 270 330 330" preserveAspectRatio="none" pointer-events="none" aria-hidden="true"><defs><clipPath id="loft-reference-crop" clipPathUnits="userSpaceOnUse"><path d="M410 271 735 456V556H410Z"/><rect x="649" y="550" width="77" height="40"/></clipPath></defs><image class="loft-art" filter="url(#loft-tone-b)" href="assets/loft-reference-source.jpg" x="0" y="0" width="747" height="1536" clip-path="url(#loft-reference-crop)"/></svg>';
-  s+=pill(268,265,'옥탑방')+'</g>';
+  const nook=loftGeometry();
+  s+=navf('up','옥탑방으로 올라가기')+'<rect class="tap" x="'+nook.x+'" y="'+nook.y+'" width="'+nook.size+'" height="'+nook.size+'"/>';
+  s+='<svg class="loft-nook" x="'+nook.x+'" y="'+nook.y+'" width="'+nook.size+'" height="'+nook.size+'" viewBox="410 270 330 330" preserveAspectRatio="none" pointer-events="none" aria-hidden="true"><defs><clipPath id="loft-reference-crop" clipPathUnits="userSpaceOnUse"><path d="M410 271 735 456V556H410Z"/><rect x="665" y="550" width="53" height="40"/></clipPath></defs><image class="loft-art" filter="url(#loft-tone-b)" href="assets/loft-reference-source.jpg" x="0" y="0" width="747" height="1536" clip-path="url(#loft-reference-crop)"/>'+loftDaylight(P)+'</svg>';
+  s+=pill(278,212,'옥탑방')+'</g>';
   return s;
 }
 
@@ -1454,8 +1471,8 @@ function drawAttic(c,P,L){
   s+='<path d="M84 560v28M232 560v28M30 588v34M170 588v34M300 588v34M110 622v40M250 622v40M60 662v48M200 662v48M330 662v48" stroke="#A6845F" stroke-width="1.1"/>';
   s+='<rect '+X+' y="-1600" height="3400" fill="url(#gVig)"/>';
   /* one bulb on a cord */
-  s+='<circle cx="124" cy="330" r="'+(P==='night'?66:46)+'" fill="url(#gBulb)"/>';
-  s+='<path d="M124 273v44" stroke="#6B5444" stroke-width="1.1"/><rect x="121" y="316" width="6" height="6" rx="1" fill="#6B5444"/><circle cx="124" cy="327" r="6" fill="#FBE8C2"/><path d="M122 325q2 3 4 0" stroke="#E8C98E" stroke-width=".8" fill="none"/>';
+  s+='<circle cx="124" cy="330" r="'+(P==='night'?66:46)+'" fill="url(#gBulb)" opacity="'+(P==='day'?0:1)+'"/>';
+  s+='<path d="M124 273v44" stroke="#6B5444" stroke-width="1.1"/><rect x="121" y="316" width="6" height="6" rx="1" fill="#6B5444"/><circle cx="124" cy="327" r="6" fill="'+(P==='day'?'#D8CCB7':'#FBE8C2')+'"/><path d="M122 325q2 3 4 0" stroke="#E8C98E" stroke-width=".8" fill="none"/>';
   [[62,606,46,4],[162,606,58,5],[257,606,34,3],[325,604,22,2]].forEach(([x,y,rx,ry])=>{s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#4E3B2C" opacity=".3" filter="url(#fBlur3)"/>'});
 
   /* boxes: two closed ones stacked, and the open one that holds the memos */
