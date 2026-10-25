@@ -62,7 +62,7 @@ for (const {hour,time,expected} of times) for (const skin of ['beige', 'winter']
   near(desk.w, other.w, 'matching desk width');
   near(desk.y + desk.h, 604, 'desk feet meet the floor');
   const surface = desk.y + desk.h * manifest['continuous-desk'].surface;
-  for (const [room, name] of [['#room', 'desktop-vignette'], ['#room2', 'computer']]) {
+  for (const [room, name] of [['#room2', 'computer']]) {
     const p = scenes[room][name];
     near(p.y + p.h, surface, `${name}: base meets the tabletop`);
   }
@@ -70,7 +70,15 @@ for (const {hour,time,expected} of times) for (const skin of ['beige', 'winter']
   near(book.y + book.h * manifest.scrapbook.baseline, cabinet.y + cabinet.h * manifest['drawer-cabinet'].surface, 'book body rests on cabinet');
   const garments = Object.keys(scenes['#room2']).filter(n => n.startsWith('garment-'));
   assert.equal(garments.length, populated ? 4 : 0, 'clothes follow live wish count');
-  assert(scenes['#room'].chair, 'the pouf has been replaced by a chair');
+  assert(rooms['#room'].includes('class="cozy-stool"'), 'the taller seat has no backrest');
+  assert(!scenes['#room2'].curtain, 'right room has no curtain');
+  assert(scenes['#room'].curtain, 'left curtain remains');
+  assert(!scenes['#room2']['calendar-base'], 'calendar replaced with wall art');
+  assert(scenes['#room2'].bookcase.y<350, 'bookcase reaches higher while staying grounded');
+  near(scenes['#room2'].bookcase.y+scenes['#room2'].bookcase.h,603,'bookcase stays on floor');
+  assert(scenes['#room2']['clothes-rail'].y<365, 'clothes rail reaches higher');
+  near(scenes['#room2']['clothes-rail'].y+scenes['#room2']['clothes-rail'].h,602,'clothes rail stays on floor');
+  assert.equal(rooms['#room'].includes('class="night-lighting"'),expected==='night','warm wall bulbs only light at night');
   for (const room of ['#room','#room2']) assert(rooms[room].includes('data-period="'+expected+'"'), 'manual time overrides device clock');
   assert.equal(rooms['#room'].includes('class="basket-front"'),populated,'basket front covers paper only when occupied');
   if(populated)assert(rooms['#room'].indexOf('class="basket-front"')>rooms['#room'].indexOf('class="basket-contents"'),'paper is behind the rim');
