@@ -468,6 +468,38 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 .skin.on::after{content:'';position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 12.5 4 4 8-9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
 #settings .acct{margin-top:0;border-top:0;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 .set-ver{margin:28px 0 0;font-size:12px;color:var(--muted)}
+/* cork board: two rows that slide sideways, like the scrapbook */
+.board{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:calc((100% - 14px)/2);gap:22px 14px;align-items:start;
+  overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;min-height:0;padding:24px 14px 22px}
+.board::-webkit-scrollbar{display:none}
+.board>*{scroll-snap-align:start}
+@media (min-width:560px){.board{grid-template-columns:none;grid-auto-columns:calc((100% - 28px)/3);gap:24px 14px;padding:26px 18px}}
+.polc.add{aspect-ratio:1/1.16;min-height:0}
+.note-hit{aspect-ratio:1/1.16;padding:16px 11px 10px;gap:4px;cursor:pointer;text-align:left}
+.note-t{font-size:18px}
+.nt-rows{display:grid;gap:2px;min-height:0;overflow:hidden}
+.nt-row{display:flex;gap:6px;align-items:flex-start;font-family:var(--font-hand);font-weight:700;font-size:17px;line-height:1.28;min-width:0}
+.nt-x{min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.nt-n{flex:none;min-width:14px;color:#6E6259}
+.nt-cb{position:relative;flex:none;width:15px;height:15px;margin-top:3px;border:1.8px solid #6E6259;border-radius:4px;background:rgba(255,255,255,.55)}
+.nt-cb::after{content:'';position:absolute;inset:-9px}
+.nt-row.done .nt-cb,.pp-row.done .pp-cb{background:#6E6259 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 12.5 4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/88% no-repeat}
+.nt-row.done .nt-x,.pp-row.done .pp-x{text-decoration:line-through;opacity:.5}
+.nt-none{font-family:var(--font-hand);font-weight:700;font-size:16px;color:#9B8F82}
+/* the big memo paper: one line per row, with checkboxes and numbers */
+.pp-paper{display:block;place-items:initial;text-align:left;overflow-y:auto}
+.pp{display:grid;gap:2px}
+.pp-row{display:flex;align-items:flex-start;gap:8px}
+.pp-x{flex:1;min-width:0;border:0;background:transparent;resize:none;outline:none;color:#3A332D;font-family:var(--font-hand);font-weight:700;font-size:22px;line-height:1.4;padding:0;overflow:hidden}
+.pp-x::placeholder{color:#9B8F82}
+.pp-cb{position:relative;flex:none;width:21px;height:21px;margin-top:6px;padding:0;border:2px solid #6E6259;border-radius:5px;background:rgba(255,255,255,.55)}
+.pp-cb::after{content:'';position:absolute;inset:-8px}
+.pp-n{flex:none;min-width:20px;font-family:var(--font-hand);font-weight:700;font-size:22px;line-height:1.4;color:#6E6259}
+.pp-hr{display:block;width:100%;height:0;border-top:1.5px dashed rgba(110,98,89,.45);margin:10px 0}
+.pp-tools{display:flex;gap:8px;justify-content:center}
+.pp-tool{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;min-height:38px;padding:0 16px;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.pp-tool svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.wc-row{display:flex;gap:6px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
 .inbox{display:grid;gap:10px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:13.5px;color:var(--ink)}
 .inbox p{margin:0;color:var(--muted)}
 .inbox-url{width:100%;min-width:0;font:12px/1.45 ui-monospace,Menlo,monospace;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:none}
@@ -674,6 +706,7 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 <div id="wsheet" class="sheet qsheet" hidden role="dialog" aria-labelledby="wT">
   <div class="sheet-head"><b id="wT">행거에 걸기</b><button class="btn primary" data-act="w-save">완료</button></div>
   <div class="fld"><label for="wLink">링크</label><div class="link-row"><input id="wLink" type="url" inputmode="url" placeholder="쇼핑몰 링크를 붙여넣으면 알아서 채워요" autocomplete="off"><button type="button" class="btn" data-act="w-paste">붙여넣기</button></div><p class="w-st" id="wSt" hidden></p></div>
+  <div class="wc-row" id="wCats" role="group" aria-label="분류"></div>
   <div class="w-photo" id="wPhoto"></div>
   <label class="fld"><span>이름</span><input id="wName" maxlength="80" placeholder="예: 울 코트" autocomplete="off"></label>
   <label class="fld"><span>가격</span><input id="wPrice" maxlength="20" inputmode="numeric" placeholder="129000" autocomplete="off"></label>
@@ -815,15 +848,20 @@ function renderInbox(){
     '<div class="row"><button class="btn primary" data-act="inbox-copy">주소 복사</button><button class="btn ghost'+(inboxArm?' danger':'')+'" data-act="inbox-rotate">'+(inboxArm?'한 번 더 누르면 바뀌어요':'새 주소로 바꾸기')+'</button></div>'+
     '<ol><li>단축어 앱 → <b>+</b> → 아래 ⓘ에서 <b>공유 시트에서 보기</b> 켜기</li><li><b>URL 인코딩</b> 추가 (입력: 단축어 입력)</li><li><b>텍스트</b> 추가 → 복사한 주소 붙여넣고, 맨 뒤에 <b>URL 인코딩된 텍스트</b> 넣기</li><li><b>URL의 콘텐츠 가져오기</b> 추가</li><li>동작 검색에 ‘알림’ → 빨간 종 모양 <b>알림 표시</b> 추가 → 내용에 <b>URL의 콘텐츠</b> 넣기 (노란 ‘계속하겠습니까?’ 팝업 말고)</li></ol>';
 }
+const DEF_WCATS=[{id:'w1',name:'옷장'},{id:'w2',name:'신발장'},{id:'w3',name:'서랍장'}],WCAT_COL=['#E3C3BA','#CFDCC9','#EAD9A8','#D8DEE6','#E3D4E6','#F0DCC4'];
+let wcats=DEF_WCATS.map(c=>({...c}));
+const wcatCol=id=>WCAT_COL[Math.max(0,wcats.findIndex(c=>c.id===id))%WCAT_COL.length];
 function applyPrefs(p){
   p=p||{};const n={...DEF};
   for(const k of [1,2,3]){const v=String(p[k]==null?'':p[k]).trim();if(v&&v!==OLD_DEF[k])n[k]=v}
   names=n;
   const t=Array.isArray(p.topics)?p.topics.filter(t=>t&&t.id).map(t=>({id:String(t.id),name:String(t.name||'주제').slice(0,14)})):[];
   topics=t.length?t:DEF_TOPICS.map(t=>({...t}));
+  const wc=Array.isArray(p.wcats)?p.wcats.filter(c=>c&&c.id).map(c=>({id:String(c.id),name:String(c.name||'분류').slice(0,10)})):null;
+  wcats=wc&&wc.length?wc:DEF_WCATS.map(c=>({...c}));
   if(p.theme&&SKINS[p.theme]&&p.theme!==skin)setSkin(p.theme);
 }
-const prefsObj=()=>({1:names[1],2:names[2],3:names[3],topics,theme:skin});
+const prefsObj=()=>({1:names[1],2:names[2],3:names[3],topics,wcats,theme:skin});
 const topicOf=d=>{const t=topics.find(t=>t.id===d.topic);return t?t.id:topics[0].id};
 const topicCol=id=>TOPIC_COL[Math.max(0,topics.findIndex(t=>t.id===id))%TOPIC_COL.length];
 
@@ -996,7 +1034,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='20';
+const APP_VERSION='21';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1376,6 +1414,8 @@ function drawStudy(c,P,L){
   const nw=Math.min(4,c.wish),xs=[262,248,233,218];
   if(!nw)[226,256].forEach(x=>{s+=hang(x)});
   for(let k=nw-1;k>=0;k--){const x=xs[k];s+=hang(x)+cloth[k](x)}
+  const shoeCat=wcats.filter(c=>/신발|슈즈|shoe/i.test(c.name)).map(c=>c.id);
+  if(tops('wish').some(d=>!d.bought&&shoeCat.includes(d.cat)))s+='<path d="M214 563.5c0-5 2-8 5-8s3.5 3 7 4.5 6 1.6 6 3.5Z" fill="#C48B74"/><path d="M231 563.5c0-5 2-8 5-8s3.5 3 7 4.5 6 1.6 6 3.5Z" fill="#A97660"/>';
   if(nw)s+='<path d="M250 543h20l-2 21h-16Z" fill="#F4ECE1"/><path d="M255 545v-4a5 5 0 0 1 10 0v4" stroke="#C99277" stroke-width="1.4" fill="none"/><circle cx="260" cy="554" r="2.4" fill="#E3C3BA"/>';
   s+=pill(240,618,'행거')+'</g>';
 
@@ -1453,7 +1493,7 @@ function hide(sel){$(sel).hidden=true;if(sel==='#editor')fitEditor()}
 function arm(key){armed=key;clearTimeout(armT);armT=setTimeout(()=>{armed=null;renderPanel()},3500)}
 const typing=box=>{const ae=document.activeElement;return !!(ae&&box.contains(ae)&&/^(INPUT|TEXTAREA)$/.test(ae.tagName))};
 
-function openPanel(place,shelf){panel={place,shelf:shelf||1,editNames:false,draft:null,topic:null,topicEdit:null,topicDraft:null};armed=null;show('#panel');$('#panel').scrollTop=0;renderPanel(true)}
+function openPanel(place,shelf){panel={place,shelf:shelf||1,editNames:false,draft:null,topic:null,topicEdit:null,topicDraft:null,wcat:'all',wcatEdit:null,wcatDraft:null};armed=null;show('#panel');$('#panel').scrollTop=0;renderPanel(true)}
 function renderPanel(force){
   if(!panel||$('#panel').hidden)return;
   const body=$('#pBody');
@@ -1469,9 +1509,9 @@ function renderPanel(force){
   else if(place==='dday'){add.textContent='+ 디데이';add.dataset.act='dday-new'}
   else{add.textContent='+ 새 메모';add.dataset.act='new'}
   if(!S.loaded){body.innerHTML='<p class="empty">불러오는 중…</p>';return}
-  const sc=$('#scrapScroll'),sl=sc?sc.scrollLeft:0;
+  const sc=$('#scrapScroll')||$('#boardScroll'),sl=sc?sc.scrollLeft:0;
   body.innerHTML=place==='drawer'?drawerHTML():place==='box'?boxHTML():place==='board'?boardHTML():place==='trash'?trashHTML():place==='wish'?wishHTML():place==='dday'?ddayHTML():scrapHTML();
-  const sc2=$('#scrapScroll');if(sc2&&sl)sc2.scrollLeft=sl;
+  const sc2=$('#scrapScroll')||$('#boardScroll');if(sc2&&sl)sc2.scrollLeft=sl;
 }
 function nestHTML(ks,pid,self){
   if(!ks.length)return '';
@@ -1546,7 +1586,7 @@ function boardHTML(){
     if(!p&&!boardBusy.has(d.id)){
       const txt=noteText(d);
       return '<div class="notec" style="--r:'+r+'deg;--nc:'+noteCol(d)+'"><span class="pin" aria-hidden="true"></span>'+
-        '<button class="note-hit" data-act="gal" data-id="'+d.id+'" data-drag-id="'+d.id+'" aria-label="메모지 크게 보기">'+(d.title?'<span class="note-t">'+esc(d.title)+'</span>':'')+'<span class="note-x'+(txt||d.title?'':' none')+'">'+esc(txt||(d.title?'':'빈 메모지'))+'</span></button></div>';
+        '<div class="note-hit" role="button" tabindex="0" data-act="gal" data-id="'+d.id+'" data-drag-id="'+d.id+'" aria-label="메모지 크게 보기">'+(d.title?'<span class="note-t">'+esc(d.title)+'</span>':'')+(txt?'<span class="nt-rows">'+noteRows(d)+'</span>':d.title?'':'<span class="nt-none">빈 메모지</span>')+'</div></div>';
     }
     const pic=p?'<span class="pol-img"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" loading="lazy">'+(d.photos.length>1?'<span class="more">+'+(d.photos.length-1)+'</span>':'')+'</span>'
       :'<span class="pol-img busy">올리는 중…</span>';
@@ -1555,8 +1595,45 @@ function boardHTML(){
       '<label class="sr" for="line-'+d.id+'">사진 제목</label><input class="pol-line" id="line-'+d.id+'" data-line="'+d.id+'" maxlength="40" value="'+esc(d.title||'')+'" placeholder="제목" autocomplete="off"></div>'}).join('');
   if(canPhoto())h+='<button class="polc add" data-act="board-photo"><span class="add-plus" aria-hidden="true">+</span>사진</button>';
   h+='<button class="polc add note-add" data-act="board-note"><span class="add-plus" aria-hidden="true">+</span>메모지</button>';
-  h+='</div><p class="hint">'+(items.length?'누르면 크게 넘겨 보면서 코멘트를 달 수 있어요':'사진이나 메모지를 붙여 보세요')+'</p>';
+  h+='</div><p class="hint">'+(items.length>3?'옆으로 넘겨 보세요 · ':'')+(items.length?'누르면 크게 보면서 고칠 수 있어요':'사진이나 메모지를 붙여 보세요')+'</p>';
   return h;
+}
+/* memo paper lines: plain, checkbox, numbered (a divider starts numbering over) */
+function noteRows(d){
+  let n=0;const out=[];
+  (d.blocks||[]).forEach((b,i)=>{
+    if(b.t==='hr'){n=0;return}
+    if(b.t==='n')n=(b.s>0)?b.s:n+1;
+    if(!(b.x||'').trim()&&b.t==='p')return;
+    if(out.length>=9)return;
+    const pre=b.t==='c'?'<span class="nt-cb" data-act="note-check" data-id="'+d.id+'" data-i="'+i+'" role="checkbox" aria-checked="'+!!b.d+'" aria-label="완료 표시"></span>':b.t==='n'?'<span class="nt-n">'+n+'.</span>':b.t==='b'?'<span class="nt-n">•</span>':'';
+    out.push('<span class="nt-row'+(b.t==='c'&&b.d?' done':'')+'">'+pre+'<span class="nt-x">'+esc(b.x||'')+'</span></span>');
+  });
+  return out.join('');
+}
+function ppRows(d){
+  const bl=d.blocks&&d.blocks.length?d.blocks:[{t:'p',x:''}];let n=0;
+  return bl.map((b,i)=>{
+    if(b.t==='hr'){n=0;return '<div class="pp-row"><span class="pp-hr"></span></div>'}
+    if(b.t==='n')n=(b.s>0)?b.s:n+1;
+    const pre=b.t==='c'?'<button type="button" class="pp-cb" data-act="pp-check" data-id="'+d.id+'" data-i="'+i+'" role="checkbox" aria-checked="'+!!b.d+'" aria-label="완료 표시"></button>':b.t==='n'?'<span class="pp-n">'+n+'.</span>':b.t==='b'?'<span class="pp-n">•</span>':'';
+    return '<div class="pp-row t-'+b.t+(b.t==='c'&&b.d?' done':'')+'">'+pre+'<textarea class="pp-x" rows="1" data-id="'+d.id+'" data-i="'+i+'"'+(bl.length===1&&!b.x?' placeholder="메모지에 적기"':'')+' aria-label="'+(i+1)+'번째 줄">'+esc(b.x||'')+'</textarea></div>';
+  }).join('');
+}
+const ppLast={};
+function ppBlocks(id){const d=get(id);return d?JSON.parse(JSON.stringify(d.blocks&&d.blocks.length?d.blocks:[{t:'p',x:''}])):null}
+function ppSave(id,bl,delay){const d=get(id);if(d)put({...d,blocks:bl},delay||0)}
+function ppRender(id,focus,caret){
+  const pp=$('#galStrip').querySelector('.pp[data-id="'+id+'"]'),d=get(id);if(!pp||!d)return;
+  pp.innerHTML=ppRows(d);pp.querySelectorAll('.pp-x').forEach(size);
+  if(focus!=null){let ta=pp.querySelector('.pp-x[data-i="'+focus+'"]');for(let k=focus;!ta&&k>=0;k--)ta=pp.querySelector('.pp-x[data-i="'+k+'"]');
+    if(ta){ta.focus();const c=caret==null?ta.value.length:Math.min(caret,ta.value.length);ta.setSelectionRange(c,c);ppLast[id]=+ta.dataset.i}}
+}
+function ppType(id,t){
+  const bl=ppBlocks(id);if(!bl)return;let i=ppLast[id];if(i==null||!bl[i]||bl[i].t==='hr')i=bl.length-1;while(i>0&&bl[i].t==='hr')i--;
+  const b=bl[i];if(b.t===t){b.t='p';delete b.d;delete b.s}else{b.t=t;delete b.s;if(t==='c')b.d=false;else delete b.d}
+  const ta=$('#galStrip').querySelector('.pp-x[data-id="'+id+'"][data-i="'+i+'"]'),pos=ta?ta.selectionStart:null;
+  ppSave(id,bl);ppRender(id,i,pos);
 }
 let galIds=[],galIdx=0;
 const isPlain=d=>(d.blocks||[]).every(b=>b.t==='p');
@@ -1564,10 +1641,9 @@ function galSlide(d){
   const p=(d.photos||[])[0];
   const roText=()=>esc((d.blocks||[]).filter(b=>b.x).map(b=>(b.t==='c'?(b.d?'☑ ':'☐ '):b.t==='n'?'· ':b.t==='b'?'• ':'')+b.x).join('\n'));
   if(!p){
-    const paper=isPlain(d)
-      ?'<div class="gal-paper" style="--nc:'+noteCol(d)+'"><span class="pin" aria-hidden="true"></span><label class="sr" for="gp-'+d.id+'">메모지 내용</label><textarea class="gal-paper-x" id="gp-'+d.id+'" data-id="'+d.id+'" placeholder="메모지에 적기">'+esc(noteText(d))+'</textarea></div>'
-      :'<button class="gal-paper" style="--nc:'+noteCol(d)+'" data-act="gal-open"><span class="gal-paper-ro">'+roText()+'</span></button>';
-    return '<section class="gal-item" data-id="'+d.id+'"><div class="gal-pic">'+paper+'</div><div class="gal-text">'+
+    const paper='<div class="gal-paper pp-paper" style="--nc:'+noteCol(d)+'"><span class="pin" aria-hidden="true"></span><div class="pp" data-id="'+d.id+'">'+ppRows(d)+'</div></div>';
+    const tools='<div class="pp-tools"><button type="button" class="pp-tool" data-act="pp-type" data-t="c" data-id="'+d.id+'"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>체크</button><button type="button" class="pp-tool" data-act="pp-type" data-t="n" data-id="'+d.id+'"><svg viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 5h1.5v4M4 9h3M4 14.5c0-1 2.5-1.4 2.5 0 0 1-2.5 2.5-2.5 3.5h2.8"/></svg>번호</button></div>';
+    return '<section class="gal-item" data-id="'+d.id+'"><div class="gal-pic">'+paper+'</div><div class="gal-text">'+tools+
       '<input class="gal-title" data-id="'+d.id+'" maxlength="40" value="'+esc(d.title||'')+'" placeholder="제목 (없어도 돼요)" aria-label="제목" autocomplete="off"></div></section>';
   }
   const note=isPlain(d)
@@ -1585,7 +1661,7 @@ function galBar(){
 }
 function galShow(html){
   const st=$('#galStrip');st.innerHTML=html;galBar();
-  $('#gal').hidden=false;st.querySelectorAll('.gal-note').forEach(size);
+  $('#gal').hidden=false;st.querySelectorAll('.gal-note,.pp-x').forEach(size);
   requestAnimationFrame(()=>{st.scrollLeft=st.clientWidth*galIdx;galCount()});
 }
 function openGal(id){
@@ -1666,21 +1742,33 @@ function wishCard(d){
     '<span class="w-name">'+esc(d.title||'이름 없음')+'</span>'+(d.price?'<span class="w-price">'+esc(d.price)+'</span>':'')+'</button>';
 }
 function wishHTML(){
-  const L=tops('wish'),want=L.filter(d=>!d.bought).sort(byNew),got=L.filter(d=>d.bought).sort((a,b)=>(b.boughtAt||0)-(a.boughtAt||0));
-  if(!L.length)return '<p class="empty">갖고 싶은 걸 걸어 두세요. 사진, 가격, 링크를 같이 적어 둘 수 있어요.</p>';
-  let h=want.length?'<div class="rack">'+want.map(wishCard).join('')+'</div>':'<p class="empty">지금 걸려 있는 건 없어요.</p>';
+  const cw=panel.wcat==='all'||wcats.some(c=>c.id===panel.wcat)?panel.wcat:'all';panel.wcat=cw;
+  let h='<div class="bm-row" role="tablist" aria-label="위시 분류"><button class="bm'+(cw==='all'?' on':'')+'" role="tab" aria-selected="'+(cw==='all')+'" data-act="wcat" data-c="all" style="--bm:#E6DCCB">전체</button>';
+  wcats.forEach(c=>{h+='<button class="bm'+(c.id===cw?' on':'')+'" role="tab" aria-selected="'+(c.id===cw)+'" data-act="wcat" data-c="'+c.id+'" style="--bm:'+wcatCol(c.id)+'">'+esc(c.name)+'</button>'});
+  h+='<button class="bm add" data-act="wcat-add" aria-label="분류 추가">+</button></div>';
+  if(panel.wcatEdit){
+    const isNew=panel.wcatEdit==='new',v=panel.wcatDraft!=null?panel.wcatDraft:(isNew?'':((wcats.find(c=>c.id===panel.wcatEdit)||{}).name||''));
+    h+='<div class="topic-edit" style="margin-top:10px"><label class="sr" for="wcatName">분류 이름</label><input id="wcatName" class="topic-in" maxlength="10" value="'+esc(v)+'" placeholder="'+(isNew?'새 분류 이름 (예: 가방)':'분류 이름')+'" autocomplete="off">'+
+      '<div class="row">'+(isNew?'':'<button class="btn ghost danger'+(armed==='wdel'?' armed':'')+'" data-act="wcat-del">'+(armed==='wdel'?'정말 지울까요?':'분류 지우기')+'</button>')+
+      '<span class="sp"></span><button class="btn ghost" data-act="wcat-cancel">취소</button><button class="btn primary" data-act="wcat-save">'+(isNew?'추가':'저장')+'</button></div></div>';
+  }
+  const L=tops('wish').filter(d=>cw==='all'||d.cat===cw),want=L.filter(d=>!d.bought).sort(byNew),got=L.filter(d=>d.bought).sort((a,b)=>(b.boughtAt||0)-(a.boughtAt||0));
+  if(!L.length)return h+'<p class="empty">'+(cw==='all'?'갖고 싶은 걸 걸어 두세요. 쇼핑몰 링크를 붙여넣으면 사진이랑 가격이 알아서 들어가요.':'이 분류엔 아직 걸린 게 없어요.')+'</p>'+(cw==='all'?'':'<p class="hint">고른 분류를 한 번 더 누르면 이름을 바꿀 수 있어요</p>');
+  h+=want.length?'<div class="rack">'+want.map(wishCard).join('')+'</div>':'<p class="empty">지금 걸려 있는 건 없어요.</p>';
   if(got.length)h+='<h3 class="set-h">산 것 · '+got.length+'</h3><div class="rack got">'+got.map(wishCard).join('')+'</div>';
+  if(cw!=='all')h+='<p class="hint">고른 분류를 한 번 더 누르면 이름을 바꿀 수 있어요</p>';
   return h;
 }
 function openW(id){
   const d=id&&get(id),ph=d?((d.photos||[])[0]||null):null;
-  w={id:d?d.id:null,photo:ph,om:d?{...(d.orig||{})}:{},dropped:[],busy:false,fetched:d?normUrl(d.link):''};wStatus('');
+  w={id:d?d.id:null,photo:ph,om:d?{...(d.orig||{})}:{},dropped:[],busy:false,fetched:d?normUrl(d.link):'',cat:d?(d.cat||null):(panel&&panel.place==='wish'&&panel.wcat!=='all'?panel.wcat:null)};wStatus('');renderWCats();
   $('#wT').textContent=d?'위시 고치기':'행거에 걸기';
   $('#wName').value=d?(d.title||''):'';$('#wPrice').value=d?(d.price||''):'';$('#wLink').value=d?(d.link||''):'';$('#wNote').value=d?noteText(d):'';
   $('#wTrash').hidden=!d;$('#wBought').hidden=!d;$('#wBought').textContent=d&&d.bought?'다시 갖고 싶어요':'샀어요';
   wLinkBtn();renderWPhoto();
   $('#wBack').hidden=false;$('#wsheet').hidden=false;
 }
+function renderWCats(){if(!w)return;$('#wCats').innerHTML=wcats.map(c=>'<button class="q-chip'+(c.id===w.cat?' on':'')+'" data-act="w-cat" data-c="'+c.id+'" style="--bm:'+wcatCol(c.id)+'" aria-pressed="'+(c.id===w.cat)+'">'+esc(c.name)+'</button>').join('')}
 function wLinkBtn(){const u=normUrl($('#wLink').value),a=$('#wGo');a.hidden=!u;if(u)a.href=u;else a.removeAttribute('href')}
 function renderWPhoto(){
   const el=$('#wPhoto');if(!w)return;
@@ -1737,9 +1825,9 @@ function saveW(bought){
   const has=name||w.photo||link||note.trim(),photos=w.photo?[w.photo]:[],blocks=note.split('\n').map(x=>({t:'p',x}));
   if(w.id){const d=get(w.id);if(d){
     if(!has){trashDoc(d.id);const id=d.id;toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}
-    else{const o={...d,title:name,price,link,blocks,photos,orig:w.om};if(bought!=null){o.bought=bought;o.boughtAt=bought?now():null}put(o);w.dropped.forEach(dropAsset)}
+    else{const o={...d,title:name,price,link,blocks,photos,orig:w.om,cat:w.cat||null};if(bought!=null){o.bought=bought;o.boughtAt=bought?now():null}put(o);w.dropped.forEach(dropAsset)}
   }}
-  else if(has){put(newDoc({place:'wish',title:name,price,link,blocks,photos,orig:w.om}));w.dropped.forEach(dropAsset)}
+  else if(has){put(newDoc({place:'wish',title:name,price,link,blocks,photos,orig:w.om,cat:w.cat||null}));w.dropped.forEach(dropAsset)}
   else w.dropped.forEach(dropAsset);
   closeW();renderPanel(true);
   if(bought===true)toast('샀구나! 산 것으로 옮겼어요');
@@ -2284,6 +2372,9 @@ document.addEventListener('click',e=>{
     case 'gal-crop':{const id=galIds[galIdx],k=galMode==='stack'?galKs[galIdx]:0,d=get(id),p=d&&(d.photos||[])[k];if(!p)break;
       openCrop(p,origOf(d.orig,p),(ref,old,info)=>{const i=swapPhoto(id,old,ref,info);if(i<0||$('#gal').hidden)return;if(galMode==='stack')openScrapGal(id,i);else openGal(id)});break}
     case 'gal-del':galDelete(a);break;
+    case 'pp-type':ppType(a.dataset.id,a.dataset.t);break;
+    case 'pp-check':{const id=a.dataset.id,i=+a.dataset.i,bl=ppBlocks(id);if(!bl||!bl[i])break;bl[i].d=!bl[i].d;ppSave(id,bl);ppRender(id);break}
+    case 'note-check':{const id=a.dataset.id,i=+a.dataset.i,bl=ppBlocks(id);if(!bl||!bl[i])break;bl[i].d=!bl[i].d;ppSave(id,bl);break}
     case 'scrap-view':openScrapGal(a.dataset.id,+a.dataset.k||0);break;
     case 'crop-cancel':closeCrop();break;
     case 'crop-done':cropDone();break;
@@ -2335,6 +2426,19 @@ document.addEventListener('click',e=>{
     case 'w-bought':{const d=w&&w.id&&get(w.id);saveW(!(d&&d.bought));break}
     case 'w-trash':{if(!w)break;const id=w.id,keep=w;closeW();if(keep.photo&&id&&get(id)&&(get(id).photos||[])[0]!==keep.photo)dropAsset(keep.photo);if(id&&get(id)){trashDoc(id);toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}break}
     case 'w-ph-add':if(w){pickTarget='wish';$('#fileIn').click()}break;
+    case 'w-cat':if(w){w.cat=w.cat===a.dataset.c?null:a.dataset.c;renderWCats()}break;
+    case 'wcat':{const c=a.dataset.c;if(panel.wcat===c&&c!=='all'&&!panel.wcatEdit){panel.wcatEdit=c;panel.wcatDraft=null}else{panel.wcat=c;panel.wcatEdit=null;panel.wcatDraft=null}
+      renderPanel(true);if(panel.wcatEdit){const i=$('#wcatName');if(i)i.focus()}break}
+    case 'wcat-add':panel.wcatEdit='new';panel.wcatDraft='';renderPanel(true);{const i=$('#wcatName');if(i)i.focus()}break;
+    case 'wcat-cancel':panel.wcatEdit=null;panel.wcatDraft=null;renderPanel(true);break;
+    case 'wcat-save':{const el=$('#wcatName'),name=((el?el.value:panel.wcatDraft)||'').trim().slice(0,10);
+      if(!name){toast('분류 이름을 적어 주세요');break}
+      if(panel.wcatEdit==='new'){const id='w'+uid();wcats.push({id,name});panel.wcat=id}
+      else{const c=wcats.find(c=>c.id===panel.wcatEdit);if(c)c.name=name}
+      panel.wcatEdit=null;panel.wcatDraft=null;savePrefs();renderPanel(true);break}
+    case 'wcat-del':{const cid=panel.wcatEdit;if(armed!=='wdel'){arm('wdel');renderPanel(true);break}
+      armed=null;tops('wish').filter(d=>d.cat===cid).forEach(d=>put({...d,cat:null}));
+      wcats=wcats.filter(c=>c.id!==cid);panel.wcat='all';panel.wcatEdit=null;panel.wcatDraft=null;savePrefs();renderPanel(true);toast('분류를 지웠어요. 안에 있던 건 전체에 그대로 있어요');break}
     case 'w-paste':(async()=>{try{const t=await navigator.clipboard.readText();if(t&&w){$('#wLink').value=t.trim();wLinkInput()}else $('#wLink').focus()}catch(e){$('#wLink').focus();toast('링크 칸을 꾹 눌러서 붙여넣어 주세요')}})();break;
     case 'w-ph-rm':if(w&&w.photo){w.dropped.push(...forget(w.om,w.photo));w.photo=null;renderWPhoto()}break;
     case 'w-crop':{if(!w||!w.photo)break;const ww=w;openCrop(ww.photo,origOf(ww.om,ww.photo),(ref,old,info)=>{const r=cropSwap([ww.photo],ww.om,old,ref,info);if(!r){if(info)dropAsset(ref);return}ww.photo=r.ph[0];ww.om=r.o;ww.dropped.push(...r.drop);if(w===ww)renderWPhoto()});break}
@@ -2371,7 +2475,7 @@ document.addEventListener('click',e=>{
       armed=null;const rest=topics.filter(t=>t.id!==tid),to=rest[0].id;
       tops('stack').filter(d=>topicOf(d)===tid).forEach(d=>put({...d,topic:to}));
       topics=rest;panel.topic=to;panel.topicEdit=null;panel.topicDraft=null;savePrefs();renderPanel(true);toast('주제를 지우고 안의 종이는 ‘'+rest[0].name+'’로 옮겼어요');break}
-    case 'board-note':{const d=put(newDoc({place:'board',nc:Math.floor(Math.random()*4)}));openGal(d.id);setTimeout(()=>{const t=$('#gp-'+d.id);if(t)t.focus()},90);break}
+    case 'board-note':{const d=put(newDoc({place:'board',nc:Math.floor(Math.random()*4)}));openGal(d.id);setTimeout(()=>{const t=$('#galStrip').querySelector('.pp-x[data-id="'+d.id+'"]');if(t)t.focus()},90);break}
     case 'tool-b':toggleType('b');break;
     case 'tool-hr':insertHr();break;
     case 'corner':closeMore();if(cur){cur.corner=!cur.corner;saveCur(0);renderHead();toast(cur.corner?'서랍 구석으로 밀어 넣었어요':'다시 앞으로 꺼냈어요')}break;
@@ -2432,17 +2536,20 @@ $('#edKids').addEventListener('focusout',e=>{if(kidsPending&&!$('#edKids').conta
 
 /* panel inputs: the line under each photo, drawer names */
 const pBody=$('#pBody');
+pBody.addEventListener('keydown',e=>{const t=e.target;if(t.classList&&t.classList.contains('note-hit')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();t.click()}});
 pBody.addEventListener('input',e=>{
   const t=e.target;
   if(t.classList.contains('pol-line')){const d=get(t.dataset.line);if(d)put({...d,title:t.value},600)}
   else if(t.classList.contains('name-in')&&panel){(panel.draft||(panel.draft={}))[t.dataset.k]=t.value}
   else if(t.id==='topicName'&&panel){panel.topicDraft=t.value}
+  else if(t.id==='wcatName'&&panel){panel.wcatDraft=t.value}
 });
 pBody.addEventListener('keydown',e=>{
   const t=e.target;if(e.key!=='Enter'||e.isComposing||e.keyCode===229)return;
   if(t.classList.contains('pol-line')){e.preventDefault();t.blur()}
   else if(t.classList.contains('name-in')){e.preventDefault();const b=pBody.querySelector('[data-act="rename-done"]');if(b)b.click()}
   else if(t.id==='topicName'){e.preventDefault();const b=pBody.querySelector('[data-act="topic-save"]');if(b)b.click()}
+  else if(t.id==='wcatName'){e.preventDefault();const b=pBody.querySelector('[data-act="wcat-save"]');if(b)b.click()}
 });
 pBody.addEventListener('focusout',e=>{if(panelPending&&!pBody.contains(e.relatedTarget))setTimeout(()=>{if(!typing(pBody))renderPanel()},0)});
 
@@ -2462,12 +2569,35 @@ const galStrip=$('#galStrip');
 galStrip.addEventListener('scroll',()=>{galIdx=Math.round(galStrip.scrollLeft/Math.max(1,galStrip.clientWidth));galCount()});
 galStrip.addEventListener('input',e=>{
   const t=e.target,id=t.dataset.id;if(!id)return;const d=get(id);if(!d)return;
+  if(t.classList.contains('pp-x')){
+    const i=+t.dataset.i,bl=ppBlocks(id),b=bl[i],v=t.value;if(!b)return;
+    if(v.includes('\n')){
+      const parts=v.split('\n');
+      if(b.t!=='p'&&parts.length===2&&!parts[0].trim()&&!parts[1]){b.t='p';delete b.d;delete b.s;b.x='';ppSave(id,bl);ppRender(id,i,0);return}
+      b.x=parts[0];const add=parts.slice(1).map(x=>b.t==='c'?{t:'c',x,d:false}:{t:b.t,x});
+      bl.splice(i+1,0,...add);ppSave(id,bl);ppRender(id,i+add.length,parts.length===2?0:null);return;
+    }
+    if(b.t==='p'){let m;
+      if((m=v.match(/^(\d{1,3})[.)] /))){b.t='n';b.x=v.slice(m[0].length);ppSave(id,bl);ppRender(id,i,0);return}
+      if((m=v.match(/^\[ ?\] /))){b.t='c';b.d=false;b.x=v.slice(m[0].length);ppSave(id,bl);ppRender(id,i,0);return}
+      if((m=v.match(/^[-*•] /))){b.t='b';b.x=v.slice(2);ppSave(id,bl);ppRender(id,i,0);return}
+    }
+    b.x=v;size(t);ppSave(id,bl,600);return;
+  }
   if(t.classList.contains('gal-title'))put({...d,title:t.value},600);
   else if(t.classList.contains('gal-note')||t.classList.contains('gal-paper-x')){if(t.classList.contains('gal-note'))size(t);put({...d,blocks:t.value.split('\n').map(x=>({t:'p',x}))},600);
     galStrip.querySelectorAll('.gal-note').forEach(o=>{if(o!==t&&o.dataset.id===id){o.value=t.value;size(o)}})}
 });
+galStrip.addEventListener('focusin',e=>{const t=e.target;if(t.classList&&t.classList.contains('pp-x'))ppLast[t.dataset.id]=+t.dataset.i});
+galStrip.addEventListener('mousedown',e=>{if(e.target.closest('.pp-tool'))e.preventDefault()});
 galStrip.addEventListener('keydown',e=>{
   const t=e.target;
+  if(t.classList.contains('pp-x')&&e.key==='Backspace'&&!e.isComposing&&t.selectionStart===0&&t.selectionEnd===0){
+    const id=t.dataset.id,i=+t.dataset.i,bl=ppBlocks(id),b=bl&&bl[i];if(!b)return;
+    if(b.t!=='p'){e.preventDefault();b.t='p';delete b.d;delete b.s;ppSave(id,bl);ppRender(id,i,0);return}
+    if(i>0&&bl[i-1].t==='hr'){e.preventDefault();bl.splice(i-1,1);ppSave(id,bl);ppRender(id,i-1,0);return}
+    if(i>0){e.preventDefault();const prev=bl[i-1],pos=(prev.x||'').length;prev.x=(prev.x||'')+(b.x||'');bl.splice(i,1);ppSave(id,bl);ppRender(id,i-1,pos);return}
+  }
   if(t.classList.contains('gal-title')&&e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();const it=t.closest('.gal-item'),n=it&&it.querySelector('.gal-note,.gal-paper-x');if(n)n.focus();else t.blur()}
 });
 document.addEventListener('keydown',e=>{
