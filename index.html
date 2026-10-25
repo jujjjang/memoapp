@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>생각의 다락방</title>
 <meta name="description" content="방 안의 서랍, 상자, 코르크보드, 스크랩북에 생각을 넣어 정리하는 메모 앱">
-<meta name="theme-color" content="#DCD4C9">
+<meta name="theme-color" content="#DFD3C3">
 <script>try{var k=localStorage.getItem("idea-room-skin");if(k&&k!=="beige")document.documentElement.dataset.skin=k}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -28,7 +28,7 @@
   --n1:#F3E4C0;--n2:#DDE6D8;--n3:#F1DCD5;--n4:#DFE5EA;
   --cork:#D6B78F;--cork-dot:#C4A47B;--wood:#E3CDB0;--photo:#FFFFFF;--photo-ink:#3A332D;--photo-line:#DCD2C5;--tape:#CFDCC9;
   --shadow:rgba(80,60,40,.2);--scrim:rgba(40,30,20,.42);
-  --wall:#DCD4C9;--hud-ink:#3A332D;--hud-sub:#7E7062;--pill-bg:rgba(255,253,249,.9);--pill-ink:#9C8470;--label-ink:#8A6A4E;--fab:#A86A50;--fab-sh:rgba(120,70,45,.6);--glow:rgba(168,106,80,.4);
+  --wall:#DFD3C3;--hud-ink:#3A332D;--hud-sub:#7E7062;--pill-bg:rgba(255,253,249,.9);--pill-ink:#9C8470;--label-ink:#8A6A4E;--fab:#A86A50;--fab-sh:rgba(120,70,45,.6);--glow:rgba(168,106,80,.4);
   --font-title:"Gowun Batang","Nanum Myeongjo","AppleMyungjo",serif;
   --font-logo:"Noto Serif KR","Gowun Batang","Nanum Myeongjo","AppleMyungjo",serif;
   --font-ko:"Gowun Dodum","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
@@ -652,9 +652,9 @@ const shelfName=k=>String(names[k]||'').trim()||DEF[k];
 /* drawer names and scrapbook topics live together in the settings row */
 /* room themes: the drawing is made once in the beige colours; a theme swaps each colour for its own */
 const SKINS={
-  beige:{name:'베이지',sw:['#DCD4C9','#D6B189','#F4ECE1','#C99277','#AFC2AE'],meta:'#DCD4C9',map:null},
+  beige:{name:'베이지',sw:['#DFD3C3','#D6B189','#F4ECE1','#C99277','#AFC2AE'],meta:'#DFD3C3',map:null},
   winter:{name:'늦겨울',sw:['#EDEAD7','#E8C2C0','#93888C','#333439','#485E6C'],meta:'#E7E4D8',map:{
-    '#DCD4C9':'#E7E4D8','#E6E0D6':'#F0EEE6','#EEEBE4':'#F4F2E8','#D9C3A6':'#C9BEBB','#C8B092':'#B3A7A6',
+    '#DFD3C3':'#E7E4D8','#E9E0D3':'#F0EEE6','#F0EAE1':'#F4F2E8','#D9C3A6':'#C9BEBB','#C8B092':'#B3A7A6',
     '#F3ECE2':'#EDD4D1','#E5D8C6':'#DDBDBA','#8E765D':'#5F5860','#8C7458':'#5F5860','#7A5A3C':'#4A4448',
     '#FAF6F0':'#FBFAF4','#D9CAB6':'#D3CDBE','#E4D3BE':'#E8C2C0','#CDB89D':'#93888C','#EAE0D2':'#E6E2D6',
     '#B9A58C':'#93888C','#A97A5E':'#333439','#C99277':'#485E6C',
@@ -688,7 +688,7 @@ function setSkin(id,save){
 }
 function skinThumb(id){
   const m=SKINS[id].map||{},c=h=>m[h]||h;
-  return '<svg viewBox="0 0 120 76" aria-hidden="true"><rect width="120" height="54" fill="'+c('#DCD4C9')+'"/><rect y="54" width="120" height="22" fill="'+c('#D9C3A6')+'"/><rect y="52" width="120" height="3" fill="'+c('#EEEBE4')+'"/>'+
+  return '<svg viewBox="0 0 120 76" aria-hidden="true"><rect width="120" height="54" fill="'+c('#DFD3C3')+'"/><rect y="54" width="120" height="22" fill="'+c('#D9C3A6')+'"/><rect y="52" width="120" height="3" fill="'+c('#F0EAE1')+'"/>'+
     '<path d="M22 63h76l7 10H15Z" fill="'+c('#F3ECE2')+'"/><rect x="8" y="10" width="28" height="30" rx="1" fill="'+c('#FAF6F0')+'"/><rect x="11" y="13" width="22" height="24" fill="#C8D8E2"/>'+
     '<rect x="14" y="30" width="32" height="32" fill="'+c('#D6B189')+'"/>'+[34,44,54].map(y=>'<rect x="17" y="'+y+'" width="26" height="7.5" rx="1" fill="'+c('#F4ECE1')+'"/>').join('')+
     '<rect x="12" y="28" width="36" height="3" rx="1" fill="'+c('#C99E73')+'"/><path d="M90 0v12" stroke="'+c('#B9A58C')+'" stroke-width=".8"/><path d="M84 18l3-6h6l3 6Z" fill="'+c('#C99277')+'"/>'+
@@ -868,7 +868,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='13';
+const APP_VERSION='14';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -957,7 +957,7 @@ const furn=(go,label,id)=>'<g class="furn"'+(id?' id="'+id+'"':'')+' data-go="'+
 /* time of day: 17–19 sunset, 19–6 night, otherwise day */
 function period(){const h=new Date().getHours();return h>=17&&h<19?'dusk':(h>=19||h<6)?'night':'day'}
 const LOOK={
-  day:  {sky:['#C8D8E2','#EAEFEE'],tree:['#BACAB4','#A9BBA3'],bld:['#DAE2E7','#D1DAE0'],wall:'#E6E0D6',wa:.85,floor:'#FFFBF5',fa:.75,glare:.6},
+  day:  {sky:['#C8D8E2','#EAEFEE'],tree:['#BACAB4','#A9BBA3'],bld:['#DAE2E7','#D1DAE0'],wall:'#E9E0D3',wa:.85,floor:'#FFFBF5',fa:.75,glare:.6},
   dusk: {sky:['#D9A6A0','#F4D3B4'],tree:['#AFA697','#9C9584'],bld:['#D8BDB6','#CDB0AA'],wall:'#F8DCC6',wa:.8,floor:'#FBE3CF',fa:.65,glare:.4},
   night:{sky:['#2C3354','#4B4F74'],tree:['#46514F','#3B4544'],bld:['#4A5070','#414764'],wall:null,wa:0,floor:null,fa:0,glare:.18}
 };
@@ -985,9 +985,9 @@ function renderRoom(){
   '</defs>';
 
   /* wall, window light on the wall (changes with the time of day), baseboard, floor */
-  s+='<rect '+X+' y="-1600" height="2160" fill="#DCD4C9"/>';
+  s+='<rect '+X+' y="-1600" height="2160" fill="#DFD3C3"/>';
   if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
-  s+='<rect '+X+' y="548" height="12" fill="#EEEBE4"/><rect '+X+' y="560" height="1600" fill="#D9C3A6"/><rect '+X+' y="559.5" height="1.5" fill="#C8B092"/>';
+  s+='<rect '+X+' y="548" height="12" fill="#F0EAE1"/><rect '+X+' y="560" height="1600" fill="#D9C3A6"/><rect '+X+' y="559.5" height="1.5" fill="#C8B092"/>';
 
   /* window: day sky, sunset, or night with the moon and lit windows */
   s+='<g transform="translate(0,-20)">';
