@@ -390,7 +390,8 @@ body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:non
 .q-add-ic{font-size:30px;line-height:1;color:#B9A58C}
 
 /* ---------- round 5: editor layout ---------- */
-#editor{display:flex;flex-direction:column;overflow:hidden}
+#editor{display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
+#editor.kb .edtools{padding-bottom:6px}
 #editor .bar{flex:none;position:relative}
 .ed-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .place-chip{max-width:calc(100% - 96px)}
@@ -415,6 +416,14 @@ body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:non
 .q-ph{width:min(76%,300px);height:220px}
 .q-add{height:220px}
 .q-add.big{height:180px}
+
+/* ---------- round 7 ---------- */
+.book{padding:10px 8px 10px 20px}
+.scraps{grid-auto-columns:calc((100% - 8px)/2);gap:8px;padding:8px 2px}
+@media (min-width:560px){.scraps{grid-auto-columns:calc((100% - 16px)/3)}}
+.scrap{height:clamp(200px,calc((100svh - 350px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))/2),340px)}
+.scrap.ph{padding:2px;width:auto;border:0;border-radius:2px;overflow:visible}
+.scrap.ph .sc-photo{border-width:4px}
 </style>
 </head>
 <body>
@@ -462,7 +471,6 @@ body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:non
     </div>
   </div>
   <div id="moreMenu" class="menu" hidden role="menu" aria-label="메모 메뉴">
-    <button role="menuitem" data-act="ed-move">다른 곳으로 옮기기</button>
     <button role="menuitem" id="mCorner" data-act="corner">서랍 구석으로</button>
     <button role="menuitem" id="mRestore" data-act="ed-restore">다시 꺼내기</button>
     <button role="menuitem" id="mTrash" class="danger" data-act="ed-trash">버리기</button>
@@ -720,7 +728,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='6';
+const APP_VERSION='7';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -934,15 +942,17 @@ function renderRoom(){
   s+='<path d="M232 462h6l-2 142h-3ZM340 462h6l-2 142h-3Z" fill="#A9825E"/>';
   s+='<rect x="226" y="452" width="126" height="11" fill="#CDA67C"/><rect x="304" y="455.5" width="30" height="4" rx="2" fill="#E6CDAA"/>';
   s+='<rect x="220" y="444" width="138" height="9" rx="2" fill="#C99E73"/>';
-  s+='<rect x="232" y="436" width="34" height="8" rx="1.5" fill="#AFC2AE"/><rect x="235" y="428" width="30" height="8" rx="1.5" fill="#E3C3BA"/><rect x="233" y="421" width="28" height="7" rx="1.5" fill="#EAD8AE"/>';
-  s+='<path d="M236 440h27M239 432h23M237 424.5h21" stroke="#FFFFFF" stroke-width=".8" opacity=".5"/>';
-  s+='<path d="M281 427 279 413" stroke="#C9826A" stroke-width="2.2" stroke-linecap="round"/><path d="M285 427 286 410" stroke="#8FA58E" stroke-width="2.2" stroke-linecap="round"/><path d="M288 427 292 415" stroke="#D9B66E" stroke-width="2.2" stroke-linecap="round"/>';
-  s+='<path d="M277 444h14l-1.2-17h-11.6Z" fill="#E8DBC9"/><path d="M278 431h12" stroke="#D6C6B0" stroke-width="1"/>';
-  s+='<rect x="299" y="410" width="28" height="34" rx="1" fill="#D6BB98"/><rect x="302" y="413" width="22" height="28" fill="#FBF7F0"/><path d="M305.5 438V430a5.5 5.5 0 0 1 11 0v8Z" fill="#AFC2AE"/><circle cx="318.5" cy="420" r="3.6" fill="#D9A08A"/>';
-  if(P==='night')s+='<circle cx="342" cy="424" r="17" fill="url(#gLamp)"/>';
-  s+='<ellipse cx="342" cy="443.6" rx="8" ry="1.7" fill="#D9C8B0"/><path d="M339.4 444 340.2 427h3.6l.8 17Z" fill="#EFE4D4"/>';
-  s+='<path d="M328.5 428Q330 409 342 408.5Q354 409 355.5 428Z" fill="'+(P==='night'?'#FBE8C6':'#F0DCC0')+'"/><ellipse cx="342" cy="428" rx="13.5" ry="2.2" fill="#E3CCAA"/>';
-  s+='<circle cx="336" cy="417" r="1.6" fill="#FFFFFF" opacity=".6"/><circle cx="347" cy="414" r="1.2" fill="#FFFFFF" opacity=".6"/><circle cx="345" cy="421" r="1" fill="#FFFFFF" opacity=".6"/>';
+  s+='<rect x="229" y="436" width="34" height="8" rx="1.5" fill="#AFC2AE"/><rect x="232" y="428" width="30" height="8" rx="1.5" fill="#E3C3BA"/><rect x="230" y="421" width="28" height="7" rx="1.5" fill="#EAD8AE"/>';
+  s+='<path d="M233 440h27M236 432h23M234 424.5h21" stroke="#FFFFFF" stroke-width=".8" opacity=".5"/>';
+  s+='<path d="M272 427 270 413" stroke="#C9826A" stroke-width="2.2" stroke-linecap="round"/><path d="M276 427 277 410" stroke="#8FA58E" stroke-width="2.2" stroke-linecap="round"/><path d="M279 427 283 415" stroke="#D9B66E" stroke-width="2.2" stroke-linecap="round"/>';
+  s+='<path d="M268 444h14l-1.2-17h-11.6Z" fill="#E8DBC9"/><path d="M269 431h12" stroke="#D6C6B0" stroke-width="1"/>';
+  s+='<rect x="324" y="410" width="28" height="34" rx="1" fill="#D6BB98"/><rect x="327" y="413" width="22" height="28" fill="#FBF7F0"/><path d="M330.5 438V430a5.5 5.5 0 0 1 11 0v8Z" fill="#AFC2AE"/><circle cx="343.5" cy="420" r="3.6" fill="#D9A08A"/>';
+  /* tall desk lamp: pleated shade, thin brass stem, round foot */
+  if(P==='night')s+='<ellipse cx="302" cy="402" rx="46" ry="34" fill="url(#gLamp)"/><ellipse cx="302" cy="400" rx="26" ry="18" fill="url(#gLamp)"/>';
+  s+='<path d="M290 444a12 4.2 0 0 1 24 0Z" fill="#B48A64"/><rect x="300.9" y="384" width="2.2" height="57" fill="#B48A64"/><circle cx="302" cy="412" r="2" fill="#B48A64"/>';
+  s+='<path d="M285 344h34l11 40h-56Z" fill="'+(P==='night'?'#FBEACB':'#EFDFC6')+'"/>';
+  s+='<path d="M293.5 344 289 384M302 344v40M310.5 344 315 384" stroke="'+(P==='night'?'#F1D9B0':'#E2CDAE')+'" stroke-width=".9"/>';
+  s+='<path d="M274 384h56" stroke="'+(P==='night'?'#FFF4DC':'#DDC5A3')+'" stroke-width="2.4" stroke-linecap="round"/><rect x="284" y="342.6" width="36" height="2.4" rx="1.2" fill="#DDC5A3"/>';
 
   /* box: things sit inside only when it holds memos */
   s+=furn('box','상자','boxG')+'<rect class="tap" x="182" y="480" width="118" height="158"/>';
@@ -1054,12 +1064,16 @@ function scrapHTML(){
   }
   const items=tops('stack').filter(d=>topicOf(d)===ct).sort(byNew);
   h+='<div class="scraps" id="scrapScroll">';
-  h+=items.map(d=>{const hs=hashStr(d.id),r=((hs%5)-2)*.7,txt=[titleOf(d),preview(d)].filter(Boolean).join('\n'),p=(d.photos||[])[0];
-    return '<button class="scrap'+(p?' ph':'')+'"'+(p?' aria-label="'+esc(txt?'사진 · '+txt:'사진')+'"':'')+' style="--r:'+r+'deg;--sc:'+SCRAP_COL[hs%SCRAP_COL.length]+';--tc:'+topicCol(ct)+'" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
-      (p?'<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(d.photos.length>1?'<span class="more">+'+(d.photos.length-1)+'</span>':'')+(txt?'<span class="sc-note" aria-hidden="true"></span>':'')+'</span>'
-        :'<span class="sc-tape" aria-hidden="true"></span><span class="sc-text">'+esc(txt||'빈 종이')+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span>')+'</button>'}).join('');
+  let tiles=0;
+  h+=items.map(d=>{const hs=hashStr(d.id),txt=[titleOf(d),preview(d)].filter(Boolean).join('\n'),ph=d.photos||[],col=SCRAP_COL[hs%SCRAP_COL.length];
+    if(!ph.length){tiles++;const r=((hs%5)-2)*.7;
+      return '<button class="scrap" style="--r:'+r+'deg;--sc:'+col+';--tc:'+topicCol(ct)+'" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
+        '<span class="sc-tape" aria-hidden="true"></span><span class="sc-text">'+esc(txt||'빈 종이')+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span></button>'}
+    return ph.map((p,k)=>{tiles++;const r=(((hs+k*3)%5)-2)*.6;
+      return '<button class="scrap ph" aria-label="'+esc('사진 '+(ph.length>1?(k+1)+'/'+ph.length:'')+(txt?' · '+txt:''))+'" style="--r:'+r+'deg" data-act="scrap-edit" data-id="'+d.id+'" data-drag-id="'+d.id+'">'+
+        '<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(txt&&k===0?'<span class="sc-note" aria-hidden="true"></span>':'')+'</span></button>'}).join('')}).join('');
   h+='<button class="scrap add" data-act="scrap-new">+ 끼워넣기</button></div></div>';
-  h+='<p class="hint">'+(items.length>3?'옆으로 넘겨 보세요 · ':'')+'고른 책갈피를 한 번 더 누르면 주제 이름을 바꿀 수 있어요</p>';
+  h+='<p class="hint">'+(tiles>3?'옆으로 넘겨 보세요 · ':'')+'고른 책갈피를 한 번 더 누르면 주제 이름을 바꿀 수 있어요</p>';
   return h;
 }
 function boxHTML(){
@@ -1601,8 +1615,9 @@ $('#edTools').addEventListener('mousedown',e=>{if(e.target.closest('.tb'))e.prev
 /* the editor always fits the part of the screen the keyboard leaves, so the header and tool bar stay in view */
 function fitEditor(){
   const ed=$('#editor'),vv=window.visualViewport;
-  if(!vv||ed.hidden){ed.style.top='';ed.style.height='';ed.style.bottom='';return}
+  if(!vv||ed.hidden){ed.style.top='';ed.style.height='';ed.style.bottom='';ed.classList.remove('kb');return}
   ed.style.top=Math.max(0,vv.offsetTop)+'px';ed.style.height=vv.height+'px';ed.style.bottom='auto';
+  ed.classList.toggle('kb',window.innerHeight-vv.height>120);
 }
 if(window.visualViewport){visualViewport.addEventListener('resize',fitEditor);visualViewport.addEventListener('scroll',fitEditor)}
 const edEl=$('#editor');
