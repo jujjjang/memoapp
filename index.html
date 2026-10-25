@@ -115,7 +115,6 @@ h1{font-family:var(--font-title);font-weight:700;font-size:30px;line-height:1.1;
 /* ---------- room drawing ---------- */
 .furn{cursor:pointer;outline:none;transition:transform .14s ease-out,filter .15s;transform-box:fill-box;transform-origin:center}
 .furn .tap{fill:transparent}
-.furn:hover,.furn:focus-visible{filter:drop-shadow(0 0 6px var(--glow))}
 .furn:focus-visible .tap{stroke:var(--fab);stroke-width:1.2;stroke-dasharray:4 5}
 .furn.pressed{transform:translateY(3px)}
 .furn.bump{animation:bump .55s ease-out}
@@ -1040,7 +1039,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='27';
+const APP_VERSION='28';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
