@@ -1034,7 +1034,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='23';
+const APP_VERSION='24';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1152,6 +1152,7 @@ function crumple(cx,cy,r,seed){
 
 /* Shared materials and room geometry keep both swipe pages in the same room. */
 function cozyDefs(id){
+  const night=period()==='night';
   const gradient=(name,stops)=>'<linearGradient id="'+name+id+'" x1="0" y1="0" x2=".15" y2="1">'+stops.map(([at,col])=>'<stop offset="'+at+'" stop-color="'+col+'"/>').join('')+'</linearGradient>';
   return '<defs>'+gradient('oak-',[[0,'#D6B189'],[.4,'#CDA67C'],[1,'#C9A47C']])+
     gradient('edge-',[[0,'#D6B189'],[.25,'#C99E73'],[1,'#B88D64']])+
@@ -1159,15 +1160,16 @@ function cozyDefs(id){
     gradient('ivory-',[[0,'#FBF8F2'],[.55,'#F4ECE1'],[1,'#E6DACA']])+
     gradient('linen-',[[0,'#FBF8F2'],[1,'#EDE2D3']])+
     gradient('clay-',[[0,'#C99277'],[.55,'#C99277'],[1,'#A97A5E']])+
-    '<linearGradient id="wall-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="560"><stop stop-color="#E9E0D3"/><stop offset=".5" stop-color="#DFD3C3"/><stop offset="1" stop-color="#D9CAB6"/></linearGradient>'+
-    '<linearGradient id="floor-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="560" x2="0" y2="740"><stop stop-color="#D9C3A6"/><stop offset="1" stop-color="#C8B092"/></linearGradient>'+
+    '<linearGradient id="wall-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="560"><stop stop-color="'+(night?'#D9C8B5':'#E9E0D3')+'"/><stop offset=".5" stop-color="'+(night?'#DCC8AE':'#DFD3C3')+'"/><stop offset="1" stop-color="'+(night?'#D1BA9D':'#D9CAB6')+'"/></linearGradient>'+
+    '<linearGradient id="floor-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="560" x2="0" y2="740"><stop stop-color="'+(night?'#D5BB99':'#D9C3A6')+'"/><stop offset="1" stop-color="'+(night?'#C7AC88':'#C8B092')+'"/></linearGradient>'+
     '<radialGradient id="warm-'+id+'"><stop stop-color="#FFD38C" stop-opacity=".95"/><stop offset=".4" stop-color="#FFE3A6" stop-opacity=".6"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>'+
+    '<radialGradient id="ambient-'+id+'"><stop stop-color="#FFF0CD" stop-opacity=".74"/><stop offset=".35" stop-color="#FFE4B5" stop-opacity=".4"/><stop offset=".7" stop-color="#FFDFAB" stop-opacity=".13"/><stop offset="1" stop-color="#FFDFAB" stop-opacity="0"/></radialGradient>'+
     '<linearGradient id="beam-'+id+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#FFFBF5" stop-opacity=".55"/><stop offset="1" stop-color="#FFFBF5" stop-opacity="0"/></linearGradient>'+
     '<pattern id="grain-'+id+'" width="90" height="23" patternUnits="userSpaceOnUse"><path d="M-10 6Q15 2 40 6T100 6M-10 17Q12 13 42 17T100 17M20 11q13-3 27 0" fill="none" stroke="#8C7458" stroke-width=".45" opacity=".22"/><path d="M0 8Q27 4 58 8T100 8" fill="none" stroke="#FBF5E6" stroke-width=".5" opacity=".45"/></pattern>'+
     '<pattern id="weave-'+id+'" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 .5H3M.5 0V3" stroke="#B9A58C" stroke-width=".24" opacity=".2"/></pattern>'+
     '<pattern id="plaster-'+id+'" width="13" height="17" patternUnits="userSpaceOnUse"><path d="M2 3h.6M8 11h.5M11 5h.7" stroke="#8C7458" stroke-width=".45" opacity=".13" stroke-linecap="round"/><path d="M4 14h1M9 2h.8" stroke="#FFFBF5" stroke-width=".6" opacity=".55"/></pattern>'+
     '<filter id="soft-'+id+'" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>'+
-    '<filter id="lift-'+id+'" x="-30%" y="-20%" width="170%" height="155%"><feDropShadow dx="1" dy="3" stdDeviation="3.5" flood-color="#7A5A3C" flood-opacity=".22"/></filter></defs>';
+    '<filter id="lift-'+id+'" x="-30%" y="-20%" width="170%" height="155%"><feDropShadow dx="1" dy="3" stdDeviation="3.5" flood-color="#7A5A3C" flood-opacity="'+(night?.15:.22)+'"/></filter></defs>';
 }
 function cozyFinish(s,id){
   // Material shading is applied before skin mapping, so winter recolors it too.
@@ -1180,10 +1182,19 @@ function cozyFinish(s,id){
   s=s.replace(/fill="#C99277"/g,'fill="url(#clay-'+id+')"');
   return cozyDefs(id)+s;
 }
+function cozyNightLight(id){
+  const glow=(x,y,rx,ry,a)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="url(#ambient-'+id+')" opacity="'+a+'"/>';
+  // The desk lamp sits at world x=302; x=-58 is its spill into the next page.
+  let s='<g pointer-events="none" aria-hidden="true">';
+  if(id==='a')s+=glow(272,166,151,191,.66)+glow(302,405,178,154,.7)+glow(166,360,69,88,.43);
+  if(id==='b')s+=glow(-58,405,178,154,.7)+glow(254,195,123,154,.54);
+  return s+'</g>';
+}
 function cozyRoomBase(id){
+  const lamps=period()==='night'?cozyNightLight(id):'';
   const X='x="-1600" width="3560"';
   return '<rect '+X+' y="-1600" height="2160" fill="url(#wall-'+id+')"/>'+
-    '<rect '+X+' y="-1600" height="2148" fill="url(#plaster-'+id+')" pointer-events="none"/>'+
+    '<rect '+X+' y="-1600" height="2148" fill="url(#plaster-'+id+')" pointer-events="none"/>'+lamps+
     '<rect '+X+' y="548" height="12" fill="#F0EAE1"/><path d="M-1600 548H1960" stroke="#FBF8F2" stroke-width="1.2"/>'+
     '<rect '+X+' y="560" height="1600" fill="url(#floor-'+id+')"/><rect '+X+' y="559.5" height="1.5" fill="#C8B092"/>'+
     '<g fill="none" stroke="#8C7458" stroke-width=".55" opacity=".12"><path d="M-1600 591H1960M-1600 637H1960M-1600 699H1960M86 560v31M294 560v31M194 591v46M24 637v62M307 637v62"/></g>';
@@ -1352,6 +1363,7 @@ function renderRoom(){
   s+='<path d="M-4 566H46L40 616H2Z" fill="#EDE2D3"/><path d="M-2 588H44" stroke="#E0D1BD" stroke-width="2.5"/><rect x="-7" y="560" width="56" height="9" rx="3" fill="#E3D5C2"/>';
 
   const M=SKINS[skin].map,sk=x=>M?x.replace(/#[0-9A-Fa-f]{6}\b/g,h=>M[h.toUpperCase()]||h):x;
+  if(P==='night')s+='<g pointer-events="none" aria-hidden="true"><ellipse cx="302" cy="444" rx="78" ry="12" fill="url(#ambient-a)" opacity=".25"/><ellipse cx="290" cy="615" rx="108" ry="29" fill="url(#ambient-a)" opacity=".2"/></g>';
   $('#room').innerHTML=sk(cozyFinish(s,'a'));
   $('#room2').innerHTML=sk(cozyFinish(drawStudy(c,P,L),'b'));
   $('#roomUp').innerHTML=sk(cozyFinish(drawAttic(c,P,L),'c'));
@@ -1382,7 +1394,7 @@ function drawStudy(c,P,L){
 
   /* A small ring-bound calendar: layered paper, oak backing and copper rings. */
   const td=new Date(),nd=nextDday(),cx=177;
-  s+=furn('dday','달력'+(nd?' · '+nd.title+' '+nd.lab:''))+'<rect class="tap" x="148" y="199" width="59" height="138"/>';
+  s+=furn('dday','달력'+(nd?' · '+nd.title+' '+nd.lab:''))+'<g transform="translate(27 35) scale(.82)"><rect class="tap" x="148" y="199" width="59" height="138"/>';
   s+='<g filter="url(#lift-b)"><path d="M160 213 177 201 194 213" stroke="#A9825E" stroke-width="1" fill="none"/><circle cx="177" cy="201" r="1.7" fill="#B88D64"/>'+
     '<rect x="150" y="212" width="54" height="94" rx="3" fill="#D6B189"/><rect x="152" y="216" width="50" height="87" rx="2" fill="#E6DACA"/>'+
     '<rect x="153" y="214" width="48" height="85" rx="2" fill="#FFFDF8"/><path d="M153 235V216a2 2 0 0 1 2-2h44a2 2 0 0 1 2 2v19Z" fill="#C99277"/>'+
@@ -1396,7 +1408,7 @@ function drawStudy(c,P,L){
     '<text class="cal-w" x="177" y="282" dominant-baseline="central">'+WD[td.getDay()]+'요일</text>';
   if(nd){const t=Array.from(nd.title),title=t.length>4?t.slice(0,4).join('')+'…':nd.title;s+='<rect x="155" y="288" width="44" height="23" rx="2" fill="#F1E5D2"/><text class="cal-dd" x="177" y="295" style="font-size:6.1px" dominant-baseline="central">'+esc(title)+'</text><text class="cal-dd cal-ddn" x="177" y="305" style="font-size:8.6px" dominant-baseline="central">'+nd.lab+'</text>'}
   else s+='<path d="M164 290H190" stroke="#E6DACA" stroke-width=".6"/><circle cx="177" cy="290" r="1.5" fill="#C99277"/>';
-  s+='</g>'+pill(cx,nd?325:319,'달력')+'</g>';
+  s+='</g></g>'+pill(173,nd?311:306,'달력')+'</g>';
 
   /* Continuous tabletop: the left end is intentionally outside the viewport. */
   s+='<path d="M145 462h6l-2 142h-3Z" fill="#A9825E"/><path d="M146 463v134" stroke="#E6CDAA" stroke-width=".65" opacity=".5"/>'+
@@ -1459,8 +1471,8 @@ function drawStudy(c,P,L){
   s+=pill(276,618,'행거')+'</g>';
 
   /* Raised mezzanine: a sloped ceiling, warm reading light and a real landing. */
-  s+=navf('up','옥탑방으로 올라가기')+'<rect class="tap" x="195" y="105" width="165" height="183"/>';
-  s+='<g transform="translate(-54 -6) scale(1.15 1)"><defs><clipPath id="loft-b"><path d="M223 123 355 198V255H223Z"/></clipPath></defs>'+
+  s+=navf('up','옥탑방으로 올라가기')+'<rect class="tap" x="201" y="105" width="159" height="183"/>';
+  s+='<g transform="translate(-45 -6) scale(1.125 1)"><defs><clipPath id="loft-b"><path d="M223 123 355 198V255H223Z"/></clipPath></defs>'+
     '<path d="M224 124 357 199V259H224Z" fill="#8C7458" opacity=".16" filter="url(#soft-b)"/>'+
     '<g clip-path="url(#loft-b)"><path d="M223 123 355 198V255H223Z" fill="#D6B189"/><path d="M223 123H236V255H223Z" fill="#B88D64"/>'+
     '<path d="M237 132 355 199V255H237Z" fill="url(#oak-b)"/>';
