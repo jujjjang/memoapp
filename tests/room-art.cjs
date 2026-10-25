@@ -81,7 +81,20 @@ for (const {hour,time,expected} of times) for (const skin of ['beige', 'winter']
   assert.equal(rooms['#room'].includes('class="window-light"'),expected!=='night','day and dusk reflections remain visible');
   assert(!scenes['#room2'].curtain, 'right room has no curtain');
   assert(scenes['#room'].curtain, 'left curtain remains');
-  assert(!scenes['#room2']['calendar-base'], 'calendar replaced with wall art');
+  assert(!scenes['#room2']['calendar-base'], 'calendar remains removed');
+  assert(!rooms['#room2'].includes('class="wall-picture"'), 'standalone wall picture removed');
+  assert(!rooms['#room2'].includes('assets/loft-reference-source.jpg'), 'closed triangular loft replaced');
+  assert(scenes['#room2']['loft-platform'], 'approved open platform artwork present');
+  assert(rooms['#room2'].includes('data-structure="open-mezzanine"'), 'ceiling is part of the room');
+  assert(scenes['#roomUp']['attic-bed'], 'matching daybed in upstairs interior');
+  near(scenes['#roomUp']['attic-bed'].y+scenes['#roomUp']['attic-bed'].h,554,'daybed rests on the floor');
+  assert(rooms['#roomUp'].includes('data-go="box"'), 'memo box remains accessible upstairs');
+  assert(rooms['#roomUp'].includes('data-nav="down"'), 'return from upstairs remains accessible');
+  assert(rooms['#roomUp'].includes('class="attic-window"'), 'upstairs window responds to time theme');
+  for(const room of ['#room2','#roomUp']){
+    const lamp=attrs(rooms[room].match(/<g class="loft-pendant"[^>]+>/)[0]);
+    assert.equal(lamp['data-lit'],String(expected!=='day'),'day bulbs unlit, dusk/night bulbs warm');
+  }
   const shelf=attrs(rooms['#room2'].match(/<svg class="bookcase-three"[^>]+>/)[0]);
   assert.equal(shelf['data-tiers'],'3','larger three-tier bookcase');
   assert(+shelf.width>=100,'shelf content is enlarged');
