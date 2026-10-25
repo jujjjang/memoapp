@@ -813,7 +813,7 @@ function renderInbox(){
   if(!inboxKey){el.innerHTML='<p>쇼핑 앱에서 공유 한 번이면, 앱을 열지 않고 행거에 걸리고 알림만 떠요. 먼저 나만의 연결 주소를 만들어요.</p><div class="row"><button class="btn primary" data-act="inbox-make">연결 주소 만들기</button></div>';return}
   el.innerHTML='<p>이 주소는 비밀번호처럼 나만 써요. 단축어에만 넣어 두세요.</p><textarea class="inbox-url" id="inboxUrl" rows="3" readonly aria-label="연결 주소">'+esc(inboxUrl())+'</textarea>'+
     '<div class="row"><button class="btn primary" data-act="inbox-copy">주소 복사</button><button class="btn ghost'+(inboxArm?' danger':'')+'" data-act="inbox-rotate">'+(inboxArm?'한 번 더 누르면 바뀌어요':'새 주소로 바꾸기')+'</button></div>'+
-    '<ol><li>단축어 앱 → <b>+</b> → 아래 ⓘ에서 <b>공유 시트에서 보기</b> 켜기</li><li><b>URL 인코딩</b> 추가 (입력: 단축어 입력)</li><li><b>텍스트</b> 추가 → 복사한 주소 붙여넣고, 맨 뒤에 <b>URL 인코딩된 텍스트</b> 넣기</li><li><b>URL의 콘텐츠 가져오기</b> 추가</li><li><b>알림 보기</b> 추가 → 내용에 <b>URL의 콘텐츠</b> 넣기</li></ol>';
+    '<ol><li>단축어 앱 → <b>+</b> → 아래 ⓘ에서 <b>공유 시트에서 보기</b> 켜기</li><li><b>URL 인코딩</b> 추가 (입력: 단축어 입력)</li><li><b>텍스트</b> 추가 → 복사한 주소 붙여넣고, 맨 뒤에 <b>URL 인코딩된 텍스트</b> 넣기</li><li><b>URL의 콘텐츠 가져오기</b> 추가</li><li>동작 검색에 ‘알림’ → 빨간 종 모양 <b>알림 표시</b> 추가 → 내용에 <b>URL의 콘텐츠</b> 넣기 (노란 ‘계속하겠습니까?’ 팝업 말고)</li></ol>';
 }
 function applyPrefs(p){
   p=p||{};const n={...DEF};
@@ -996,7 +996,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='18';
+const APP_VERSION='19';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
