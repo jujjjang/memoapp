@@ -392,6 +392,8 @@ body.carrying,body.carrying *{-webkit-user-select:none!important;user-select:non
 /* ---------- round 5: editor layout ---------- */
 #editor{display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
 #editor.kb .edtools{padding-bottom:6px}
+/* iOS draws a see-through keyboard; keep a plain wall behind it so the list underneath doesn't show */
+body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z-index:19;background:var(--bg);pointer-events:none}
 #editor .bar{flex:none;position:relative}
 .ed-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .place-chip{max-width:calc(100% - 96px)}
@@ -728,7 +730,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='7';
+const APP_VERSION='8';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1001,7 +1003,7 @@ setInterval(()=>{const m=new Date().getMinutes();if(m!==lastMin){lastMin=m;rende
 /* ================= panels ================= */
 let panel=null,armed=null,armT,panelPending=false;
 function show(sel){$(sel).hidden=false}
-function hide(sel){$(sel).hidden=true}
+function hide(sel){$(sel).hidden=true;if(sel==='#editor')fitEditor()}
 function arm(key){armed=key;clearTimeout(armT);armT=setTimeout(()=>{armed=null;renderPanel()},3500)}
 const typing=box=>{const ae=document.activeElement;return !!(ae&&box.contains(ae)&&/^(INPUT|TEXTAREA)$/.test(ae.tagName))};
 
@@ -1615,9 +1617,9 @@ $('#edTools').addEventListener('mousedown',e=>{if(e.target.closest('.tb'))e.prev
 /* the editor always fits the part of the screen the keyboard leaves, so the header and tool bar stay in view */
 function fitEditor(){
   const ed=$('#editor'),vv=window.visualViewport;
-  if(!vv||ed.hidden){ed.style.top='';ed.style.height='';ed.style.bottom='';ed.classList.remove('kb');return}
+  if(!vv||ed.hidden){ed.style.top='';ed.style.height='';ed.style.bottom='';ed.classList.remove('kb');document.body.classList.remove('ed-kb');return}
   ed.style.top=Math.max(0,vv.offsetTop)+'px';ed.style.height=vv.height+'px';ed.style.bottom='auto';
-  ed.classList.toggle('kb',window.innerHeight-vv.height>120);
+  const kb=window.innerHeight-vv.height>120;ed.classList.toggle('kb',kb);document.body.classList.toggle('ed-kb',kb);
 }
 if(window.visualViewport){visualViewport.addEventListener('resize',fitEditor);visualViewport.addEventListener('scroll',fitEditor)}
 const edEl=$('#editor');
