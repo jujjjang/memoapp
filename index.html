@@ -843,7 +843,7 @@ function startLocal(){
   try{const r=localStorage.getItem(NKEY);if(r)applyPrefs(JSON.parse(r))}catch(e){}
   dirty.clear();tomb.clear();persistLocal();S.loaded=true;
   const n=$('#note');n.textContent='Supabase 연결 전이라 이 브라우저에만 저장돼요';n.hidden=false;
-  changed();
+  changed();handleShare();
 }
 
 /* Supabase: a local copy opens the room instantly, unsent changes survive a reload */
@@ -882,6 +882,7 @@ async function startCloud(session){
   loadCache();S.loaded=S.docs.size>0;changed();
   try{await fetchAll()}catch(e){S.loaded=true;changed();toast('메모를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.')}
   [...dirty].forEach(id=>{if(!timers.has(id)&&!chains.has(id))send(id)});
+  handleShare();
 }
 async function refresh(){
   if(mode!=='cloud')return;
@@ -948,7 +949,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='16';
+const APP_VERSION='17';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -958,6 +959,18 @@ async function checkUpdate(){
     try{sessionStorage.setItem('idea-room-upd',String(Date.now()))}catch(e){}
     flushAll();setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(j.v)),300);
   }catch(e){}
+}
+/* a link shared in (?wish=… from an iPhone shortcut, or Android's share sheet): keep it through sign-in and reloads, then hang it on the rack */
+const SHARE_KEY='idea-room-share';
+(()=>{try{const q=new URLSearchParams(location.search),v=q.get('wish')||q.get('url')||q.get('text');
+  if(v){sessionStorage.setItem(SHARE_KEY,v);history.replaceState(null,'',location.pathname)}}catch(e){}})();
+function handleShare(){
+  let v=null;try{v=sessionStorage.getItem(SHARE_KEY);if(v)sessionStorage.removeItem(SHARE_KEY)}catch(e){}
+  if(!v)return;
+  const m=String(v).match(/https?:\/\/[^\s<>"']+/);if(!m){toast('공유된 링크를 못 찾았어요');return}
+  const h=$('#house');h.classList.add('instant');goDown();floor1.scrollLeft=floor1.clientWidth;navArrows();requestAnimationFrame(()=>requestAnimationFrame(()=>h.classList.remove('instant')));
+  ['#editor','#search','#settings','#gal'].forEach(hide);closeQ();closeD();
+  openPanel('wish');openW(null);$('#wLink').value=m[0];wLinkInput();
 }
 async function boot(){
   changed();checkUpdate();
