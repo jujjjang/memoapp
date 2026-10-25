@@ -1,5 +1,7 @@
 // link-preview: reads a shop page and hands back its name, price and main photo,
 // so a pasted link can fill in a wishlist item on its own.
+// It also takes a one-tap share from an iPhone shortcut (GET ?inbox=<personal key>&url=...):
+// the item goes straight onto the rack and the shortcut shows a short note.
 // Deploy: Supabase dashboard → Edge Functions → Deploy a new function → Via Editor,
 // name it "link-preview", paste this file, Deploy. Then turn JWT verification off for it
 // (this function checks the signed-in user itself).
@@ -180,21 +182,10 @@ async function signedIn(req: Request) {
   } catch { return false; }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "POST") return json({ error: "method" }, 405);
-  if (!(await signedIn(req))) return json({ error: "auth" }, 401);
+type PageInfo = { title: string; price: number | null; currency: string; image: string | null; imageUrl: string; site: string; url: string };
 
-  let url = "";
-  try { url = String((await req.json()).url || "").trim(); } catch { /* empty body */ }
-  if (!/^https?:\/\//i.test(url)) return json({ error: "url" }, 400);
-
-  let page;
-  try {
-    page = await grab(url, "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8", 2_500_000);
-  } catch (e) {
-    return json({ error: "fetch", detail: String((e as Error).message || e) }, 200);
-  }
+async function readPage(url: string, withImage: boolean): Promise<PageInfo> {
+  const page = await grab(url, "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8", 2_500_000);
   const html = decodeHtml(page.buf, page.type);
   const meta = metas(html);
   const ld = fromLd(html);
@@ -203,7 +194,7 @@ Deno.serve(async (req) => {
   const rawTitle = meta["og:title"] || meta["twitter:title"] || ld.name || (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "";
   const title = rawTitle ? cleanTitle(rawTitle, site) : "";
 
-  let price = [meta["product:sale_price:amount"], meta["product:price:amount"], meta["og:price:amount"], meta["price"]]
+  let price: number | null = [meta["product:sale_price:amount"], meta["product:price:amount"], meta["og:price:amount"], meta["price"]]
     .map(num).find(okPrice) || ld.price || null;
   let currency = meta["product:price:currency"] || meta["og:price:currency"] || ld.currency || "";
   if (!price) {
@@ -221,13 +212,68 @@ Deno.serve(async (req) => {
     try { imageUrl = new URL(imageUrl.replace(/^\/\//, "https://"), page.url).href; } catch { imageUrl = ""; }
   }
   let image: string | null = null;
-  if (imageUrl) {
+  if (imageUrl && withImage) {
     try {
       const img = await grab(imageUrl, "image/avif,image/webp,image/*;q=0.9,*/*;q=0.5", 6_000_000, page.url);
       const t = (img.type.split(";")[0] || "").trim();
       if (/^image\//.test(t) && img.buf.length > 200 && img.buf.length < 6_000_000) image = "data:" + t + ";base64," + b64(img.buf);
     } catch { /* keep just the address */ }
   }
+  return { title, price, currency, image, imageUrl, site, url: page.url };
+}
 
-  return json({ title, price, currency, image, imageUrl, site, url: page.url });
+const won = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+const plain = (msg: string) => new Response(msg, { headers: { ...CORS, "Content-Type": "text/plain; charset=utf-8" } });
+
+/* one tap from the share sheet: hang the link on the rack right away; the app adds the photo next time it opens */
+async function inbox(q: URLSearchParams) {
+  const key = q.get("inbox") || "";
+  const raw = q.get("url") || q.get("text") || "";
+  const link = (raw.match(/https?:\/\/[^\s<>"']+/) || [])[0];
+  const base = Deno.env.get("SUPABASE_URL") || "";
+  let apikey = q.get("apikey") || Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (!apikey) { try { apikey = Object.values(JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}"))[0] as string || ""; } catch { /* none */ } }
+  if (!link) return plain("공유한 것에서 링크를 못 찾았어요");
+  if (key.length < 24 || !base || !apikey) return plain("연결 주소가 맞지 않아요. 앱 설정에서 다시 복사해 주세요");
+
+  let info: PageInfo | null = null;
+  try { info = await readPage(link, false); } catch { /* the site would not let us read it */ }
+  const now = Date.now();
+  const id = now.toString(36) + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+  const title = (info && info.title) || "공유한 링크";
+  const doc = {
+    id, place: "wish", shelf: 1, parent: null, title,
+    price: info && info.price ? (!info.currency || /KRW/i.test(info.currency) ? won(info.price) : info.price + " " + info.currency) : "",
+    link: (info && info.url) || link, blocks: [{ t: "p", x: "" }], photos: [], created: now, updated: now,
+    ...(info && info.imageUrl ? { needsPhoto: true } : {}),
+  };
+  const r = await fetch(base + "/rest/v1/rpc/inbox_add", {
+    method: "POST",
+    headers: { apikey, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_key: key, p_doc: doc }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    if (/bad key/.test(t)) return plain("연결 주소가 맞지 않아요. 앱 설정에서 다시 복사해 주세요");
+    if (r.status === 404) return plain("서버 준비가 덜 됐어요. inbox.sql을 먼저 실행해 주세요");
+    return plain("행거에 걸지 못했어요. 잠시 뒤 다시 해 주세요");
+  }
+  return plain(info ? "행거에 걸었어요 · " + title : "링크만 걸어 뒀어요 (이 사이트는 정보를 못 읽었어요)");
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  const q = new URL(req.url).searchParams;
+  if (q.get("inbox")) return inbox(q);
+  if (req.method !== "POST") return json({ error: "method" }, 405);
+  if (!(await signedIn(req))) return json({ error: "auth" }, 401);
+
+  let url = "";
+  try { url = String((await req.json()).url || "").trim(); } catch { /* empty body */ }
+  if (!/^https?:\/\//i.test(url)) return json({ error: "url" }, 400);
+  try {
+    return json(await readPage(url, true));
+  } catch (e) {
+    return json({ error: "fetch", detail: String((e as Error).message || e) }, 200);
+  }
 });

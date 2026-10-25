@@ -468,6 +468,12 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 .skin.on::after{content:'';position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 12.5 4 4 8-9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
 #settings .acct{margin-top:0;border-top:0;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 .set-ver{margin:28px 0 0;font-size:12px;color:var(--muted)}
+.inbox{display:grid;gap:10px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:13.5px;color:var(--ink)}
+.inbox p{margin:0;color:var(--muted)}
+.inbox-url{width:100%;min-width:0;font:12px/1.45 ui-monospace,Menlo,monospace;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:none}
+.inbox .row{display:flex;gap:6px;flex-wrap:wrap}
+.inbox ol{margin:0;padding-left:20px;color:var(--muted);font-size:13px;line-height:1.65}
+.inbox ol b{color:var(--ink);font-weight:600}
 .qback{z-index:32}
 .cal-m{font-family:var(--font-title);font-size:9px;font-weight:700;fill:#FFFDF8;text-anchor:middle}
 .cal-d{font-family:var(--font-title);font-size:30px;font-weight:700;fill:var(--hud-ink);text-anchor:middle}
@@ -589,6 +595,7 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
     <header class="p-head"><h2 id="setT">설정</h2><p>방 분위기와 계정</p></header>
     <h3 class="set-h">방 테마</h3>
     <div class="skins" id="skinList" role="radiogroup" aria-label="방 테마"></div>
+    <div id="inboxWrap" hidden><h3 class="set-h">단축어로 바로 걸기</h3><div class="inbox" id="inboxBox"></div></div>
     <div id="acctWrap" hidden><h3 class="set-h">계정</h3><div class="acct" id="acct"><span id="acctEmail"></span><button class="btn ghost" data-act="logout">로그아웃</button></div></div>
     <p class="set-ver" id="setVer"></p>
   </div>
@@ -782,7 +789,31 @@ function renderSettings(){
   $('#skinList').innerHTML=Object.keys(SKINS).map(id=>{const k=SKINS[id],on=id===skin;
     return '<button class="skin'+(on?' on':'')+'" role="radio" aria-checked="'+on+'" data-act="skin" data-skin="'+id+'">'+skinThumb(id)+'<b>'+esc(k.name)+'</b><span class="sw">'+k.sw.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span></button>'}).join('');
   $('#acctWrap').hidden=mode!=='cloud';$('#acctEmail').textContent=myEmail?myEmail+' 계정으로 쓰는 중':'';
-  $('#setVer').textContent='버전 '+APP_VERSION;
+  $('#setVer').textContent='버전 '+APP_VERSION;renderInbox();
+}
+/* one-tap sharing: a personal key the iPhone shortcut sends along, so a shared link lands on the rack without opening the app */
+let inboxKey=null,inboxSt='idle',inboxArm=false;
+function inboxUrl(){return String(CFG.supabaseUrl||'').replace(/\/$/,'')+'/functions/v1/link-preview?apikey='+encodeURIComponent(CFG.supabaseKey||'')+'&inbox='+inboxKey+'&url='}
+async function loadInbox(){
+  if(mode!=='cloud'||!sb)return;inboxSt='loading';renderInbox();
+  try{const {data,error}=await sb.from('inbox_keys').select('key').maybeSingle();if(error)throw error;inboxKey=data?data.key:null;inboxSt='ok'}catch(e){inboxSt='err'}
+  renderInbox();
+}
+async function makeInbox(){
+  const b=new Uint8Array(24);crypto.getRandomValues(b);
+  const key=btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const {error}=await sb.from('inbox_keys').upsert({user_id:me,key},{onConflict:'user_id'});
+  if(error){inboxSt='err';renderInbox();return}
+  inboxKey=key;inboxSt='ok';renderInbox();toast(inboxArm?'새 주소로 바꿨어요. 단축어 속 주소도 바꿔 주세요':'연결 주소를 만들었어요');inboxArm=false;
+}
+function renderInbox(){
+  const wrap=$('#inboxWrap');wrap.hidden=mode!=='cloud';if(wrap.hidden)return;const el=$('#inboxBox');
+  if(inboxSt==='loading'||inboxSt==='idle'){el.innerHTML='<p>불러오는 중…</p>';return}
+  if(inboxSt==='err'){el.innerHTML='<p>서버 준비가 필요해요. Supabase SQL Editor에서 레포의 <b>inbox.sql</b>을 한 번 실행한 뒤 다시 열어 주세요.</p>';return}
+  if(!inboxKey){el.innerHTML='<p>쇼핑 앱에서 공유 한 번이면, 앱을 열지 않고 행거에 걸리고 알림만 떠요. 먼저 나만의 연결 주소를 만들어요.</p><div class="row"><button class="btn primary" data-act="inbox-make">연결 주소 만들기</button></div>';return}
+  el.innerHTML='<p>이 주소는 비밀번호처럼 나만 써요. 단축어에만 넣어 두세요.</p><textarea class="inbox-url" id="inboxUrl" rows="3" readonly aria-label="연결 주소">'+esc(inboxUrl())+'</textarea>'+
+    '<div class="row"><button class="btn primary" data-act="inbox-copy">주소 복사</button><button class="btn ghost'+(inboxArm?' danger':'')+'" data-act="inbox-rotate">'+(inboxArm?'한 번 더 누르면 바뀌어요':'새 주소로 바꾸기')+'</button></div>'+
+    '<ol><li>단축어 앱 → <b>+</b> → 아래 ⓘ에서 <b>공유 시트에서 보기</b> 켜기</li><li><b>URL 인코딩</b> 추가 (입력: 단축어 입력)</li><li><b>텍스트</b> 추가 → 복사한 주소 붙여넣고, 맨 뒤에 <b>URL 인코딩된 텍스트</b> 넣기</li><li><b>URL의 콘텐츠 가져오기</b> 추가</li><li><b>알림 보기</b> 추가 → 내용에 <b>URL의 콘텐츠</b> 넣기</li></ol>';
 }
 function applyPrefs(p){
   p=p||{};const n={...DEF};
@@ -874,7 +905,23 @@ async function fetchAll(){
   S.docs=next;S.loaded=true;
   const st=await sb.from('settings').select('drawer_names').eq('user_id',me).maybeSingle();
   if(!st.error&&st.data&&st.data.drawer_names)applyPrefs(st.data.drawer_names);
-  persistCache();changed();
+  persistCache();changed();fillPending();
+}
+let filling=false;
+async function fillPending(){
+  if(filling||mode!=='cloud'||!sb)return;filling=true;
+  try{
+    for(const d of all().filter(x=>x.place==='wish'&&x.needsPhoto&&x.link).slice(0,4)){
+      let data=null;try{const r=await sb.functions.invoke('link-preview',{body:{url:d.link}});data=r.error?null:r.data}catch(e){}
+      let ref=null;const now0=get(d.id);
+      if(now0&&!(now0.photos||[]).length&&data&&data.image){try{const blob=await (await fetch(data.image)).blob();ref=await uploadOne(new File([blob],'link.jpg',{type:blob.type}))}catch(e){}}
+      const n=get(d.id);if(!n){if(ref)dropAsset(ref);continue}
+      const o={...n};delete o.needsPhoto;
+      if(ref&&!(o.photos||[]).length)o.photos=[ref];else if(ref)dropAsset(ref);
+      if(!o.price&&data&&data.price&&(!data.currency||/KRW/i.test(data.currency)))o.price=Number(data.price).toLocaleString('ko-KR')+'원';
+      put(o);
+    }
+  }finally{filling=false}
 }
 async function startCloud(session){
   if(mode==='cloud'&&me===session.user.id)return;
@@ -949,7 +996,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='17';
+const APP_VERSION='18';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -2270,7 +2317,10 @@ document.addEventListener('click',e=>{
       if(!cur.photos.length)closeLB();else openLB(Math.min(lbIdx,cur.photos.length-1));
       break}
     case 'search-open':show('#search');$('#q').focus();renderSearch();break;
-    case 'settings-open':show('#settings');renderSettings();break;
+    case 'settings-open':show('#settings');inboxArm=false;renderSettings();loadInbox();break;
+    case 'inbox-make':makeInbox();break;
+    case 'inbox-rotate':if(inboxArm)makeInbox();else{inboxArm=true;renderInbox();setTimeout(()=>{if(inboxArm){inboxArm=false;renderInbox()}},3000)}break;
+    case 'inbox-copy':(async()=>{const u=inboxUrl();try{await navigator.clipboard.writeText(u);toast('주소를 복사했어요')}catch(e){const t=$('#inboxUrl');if(t){t.focus();t.select()}toast('주소를 꾹 눌러 복사해 주세요')}})();break;
     case 'room-next':goRoom(1);break;
     case 'room-prev':goRoom(0);break;
     case 'wish-new':openW(null);break;
