@@ -13,6 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="생각의 다락방">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preload" as="image" href="assets/loft-reference-source.jpg">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,6 +120,7 @@ h1{font-family:var(--font-title);font-weight:700;font-size:30px;line-height:1.1;
 .pill rect{fill:var(--pill-bg)}
 .pill text{font-family:var(--font-title);font-size:11.5px;font-weight:700;fill:var(--pill-ink)}
 .pill .pn{fill:var(--fab)}
+:root[data-skin="winter"] .loft-art{filter:saturate(.6)}
 .dl{font-family:var(--font-title);font-size:10px;font-weight:700;fill:#6B5B4D;text-anchor:middle}
 .dc{font-family:var(--font-title);font-size:11px;font-weight:700;fill:#FFFFFF;text-anchor:middle}
 .bl{font-family:var(--font-hand);font-size:12.5px;font-weight:700;fill:var(--label-ink);text-anchor:middle}
@@ -510,6 +512,7 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 .cal-m{font-family:var(--font-title);font-size:9px;font-weight:700;fill:#FFFDF8;text-anchor:middle}
 .cal-d{font-family:var(--font-title);font-size:30px;font-weight:700;fill:var(--hud-ink);text-anchor:middle}
 .cal-d.sun{fill:var(--fab)}
+.cal-reference-date{font-family:Georgia,"Times New Roman",serif;font-size:32px;font-weight:400;fill:var(--fab);text-anchor:middle}
 .cal-dd{font-family:var(--font-title);font-size:7.6px;font-weight:700;fill:var(--hud-sub);text-anchor:middle}
 .cal-ddn{fill:var(--fab);font-size:8.6px}
 .cal-w{font-family:var(--font-title);font-size:8.5px;font-weight:700;fill:var(--hud-sub);text-anchor:middle}
@@ -1034,7 +1037,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='24';
+const APP_VERSION='25';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1160,41 +1163,27 @@ function cozyDefs(id){
     gradient('ivory-',[[0,'#FBF8F2'],[.55,'#F4ECE1'],[1,'#E6DACA']])+
     gradient('linen-',[[0,'#FBF8F2'],[1,'#EDE2D3']])+
     gradient('clay-',[[0,'#C99277'],[.55,'#C99277'],[1,'#A97A5E']])+
-    '<linearGradient id="wall-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="560"><stop stop-color="'+(night?'#D9C8B5':'#E9E0D3')+'"/><stop offset=".5" stop-color="'+(night?'#DCC8AE':'#DFD3C3')+'"/><stop offset="1" stop-color="'+(night?'#D1BA9D':'#D9CAB6')+'"/></linearGradient>'+
-    '<linearGradient id="floor-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="560" x2="0" y2="740"><stop stop-color="'+(night?'#D5BB99':'#D9C3A6')+'"/><stop offset="1" stop-color="'+(night?'#C7AC88':'#C8B092')+'"/></linearGradient>'+
+    '<linearGradient id="wall-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="560"><stop stop-color="'+'#DFD3C3'+'"/><stop offset=".5" stop-color="'+'#DFD3C3'+'"/><stop offset="1" stop-color="'+'#DDD0BE'+'"/></linearGradient>'+
+    '<linearGradient id="floor-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="560" x2="0" y2="740"><stop stop-color="'+'#D9C3A6'+'"/><stop offset="1" stop-color="'+'#D2BB9E'+'"/></linearGradient>'+
     '<radialGradient id="warm-'+id+'"><stop stop-color="#FFD38C" stop-opacity=".95"/><stop offset=".4" stop-color="#FFE3A6" stop-opacity=".6"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>'+
     '<radialGradient id="ambient-'+id+'"><stop stop-color="#FFF0CD" stop-opacity=".74"/><stop offset=".35" stop-color="#FFE4B5" stop-opacity=".4"/><stop offset=".7" stop-color="#FFDFAB" stop-opacity=".13"/><stop offset="1" stop-color="#FFDFAB" stop-opacity="0"/></radialGradient>'+
     '<linearGradient id="beam-'+id+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#FFFBF5" stop-opacity=".55"/><stop offset="1" stop-color="#FFFBF5" stop-opacity="0"/></linearGradient>'+
     '<pattern id="grain-'+id+'" width="90" height="23" patternUnits="userSpaceOnUse"><path d="M-10 6Q15 2 40 6T100 6M-10 17Q12 13 42 17T100 17M20 11q13-3 27 0" fill="none" stroke="#8C7458" stroke-width=".45" opacity=".22"/><path d="M0 8Q27 4 58 8T100 8" fill="none" stroke="#FBF5E6" stroke-width=".5" opacity=".45"/></pattern>'+
-    '<pattern id="weave-'+id+'" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 .5H3M.5 0V3" stroke="#B9A58C" stroke-width=".24" opacity=".2"/></pattern>'+
+    '<pattern id="weave-'+id+'" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 .5H3M.5 0V3" stroke="#B9A58C" stroke-width=".24" opacity=".035"/></pattern>'+
     '<pattern id="plaster-'+id+'" width="13" height="17" patternUnits="userSpaceOnUse"><path d="M2 3h.6M8 11h.5M11 5h.7" stroke="#8C7458" stroke-width=".45" opacity=".13" stroke-linecap="round"/><path d="M4 14h1M9 2h.8" stroke="#FFFBF5" stroke-width=".6" opacity=".55"/></pattern>'+
     '<filter id="soft-'+id+'" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>'+
-    '<filter id="lift-'+id+'" x="-30%" y="-20%" width="170%" height="155%"><feDropShadow dx="1" dy="3" stdDeviation="3.5" flood-color="#7A5A3C" flood-opacity="'+(night?.15:.22)+'"/></filter></defs>';
+    '<filter id="lift-'+id+'" x="-30%" y="-20%" width="170%" height="155%"><feDropShadow dx="1" dy="3" stdDeviation="2" flood-color="#7A5A3C" flood-opacity=".12"/></filter></defs>';
 }
 function cozyFinish(s,id){
   // Material shading is applied before skin mapping, so winter recolors it too.
-  s=s.replace(/<(rect|path)\b[^>]*fill="#(D6B189|C99E73|CDA67C)"[^>]*\/>/g,tag=>{
-    const edge=tag.includes('#C99E73');
-    return tag.replace(/fill="#[0-9A-Fa-f]{6}"/,'fill="url(#'+(edge?'edge-':'oak-')+id+')"')+
-      tag.replace(/fill="#[0-9A-Fa-f]{6}"/,'fill="url(#grain-'+id+')"').replace(/\/>$/,' pointer-events="none"/>');
-  });
+  s=s.replace(/fill="#(D6B189|C99E73|CDA67C)"/g,(_,c)=>'fill="url(#'+(c==='C99E73'?'edge-':'oak-')+id+')"');
   s=s.replace(/fill="#F4ECE1"/g,'fill="url(#ivory-'+id+')"');
   s=s.replace(/fill="#C99277"/g,'fill="url(#clay-'+id+')"');
   return cozyDefs(id)+s;
 }
-function cozyNightLight(id){
-  const glow=(x,y,rx,ry,a)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="url(#ambient-'+id+')" opacity="'+a+'"/>';
-  // The desk lamp sits at world x=302; x=-58 is its spill into the next page.
-  let s='<g pointer-events="none" aria-hidden="true">';
-  if(id==='a')s+=glow(272,166,151,191,.66)+glow(302,405,178,154,.7)+glow(166,360,69,88,.43);
-  if(id==='b')s+=glow(-58,405,178,154,.7)+glow(254,195,123,154,.54);
-  return s+'</g>';
-}
 function cozyRoomBase(id){
-  const lamps=period()==='night'?cozyNightLight(id):'';
   const X='x="-1600" width="3560"';
   return '<rect '+X+' y="-1600" height="2160" fill="url(#wall-'+id+')"/>'+
-    '<rect '+X+' y="-1600" height="2148" fill="url(#plaster-'+id+')" pointer-events="none"/>'+lamps+
     '<rect '+X+' y="548" height="12" fill="#F0EAE1"/><path d="M-1600 548H1960" stroke="#FBF8F2" stroke-width="1.2"/>'+
     '<rect '+X+' y="560" height="1600" fill="url(#floor-'+id+')"/><rect '+X+' y="559.5" height="1.5" fill="#C8B092"/>'+
     '<g fill="none" stroke="#8C7458" stroke-width=".55" opacity=".12"><path d="M-1600 591H1960M-1600 637H1960M-1600 699H1960M86 560v31M294 560v31M194 591v46M24 637v62M307 637v62"/></g>';
@@ -1254,7 +1243,6 @@ function renderRoom(){
 
   s+=cozyRoomBase('a');
   if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa*.6+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
-  s+='<ellipse cx="280" cy="370" rx="100" ry="100" fill="url(#warm-a)" opacity="'+(P==='night'?.4:.15)+'"/>';
   s+=cozyWindow('a',P,L);
 
   /* pendant lamp (lit at night) */
@@ -1335,7 +1323,7 @@ function renderRoom(){
   s+='<rect x="324" y="410" width="28" height="34" rx="1" fill="#D6BB98"/><rect x="327" y="413" width="22" height="28" fill="#FBF7F0"/><path d="M330.5 438V430a5.5 5.5 0 0 1 11 0v8Z" fill="#AFC2AE"/><circle cx="343.5" cy="420" r="3.6" fill="#D9A08A"/>';
   /* tall desk lamp: pleated shade, thin brass stem, round foot */
   const NL=P==='night';
-  if(NL)s+='<ellipse cx="302" cy="407" rx="46" ry="34" fill="url(#gLamp)"/><ellipse cx="302" cy="405" rx="26" ry="18" fill="url(#gLamp)"/>';
+  if(NL)s+='<ellipse cx="302" cy="370" rx="35" ry="28" fill="url(#gLamp)" opacity=".24" pointer-events="none"/>';
   s+='<path d="M290 444a12 4.2 0 0 1 24 0Z" fill="#A47B55"/><rect x="300.9" y="389" width="2.2" height="52" fill="#A47B55"/><circle cx="302" cy="415" r="2" fill="#A47B55"/>';
   s+='<path d="M285 349h34l11 40h-56Z" fill="'+(NL?'#F8E4AE':'#EBD397')+'"/>';
   s+='<path d="M293.5 349 289 389M302 349v40M310.5 349 315 389" stroke="'+(NL?'#EFD597':'#DCC07F')+'" stroke-width=".9"/>';
@@ -1363,7 +1351,6 @@ function renderRoom(){
   s+='<path d="M-4 566H46L40 616H2Z" fill="#EDE2D3"/><path d="M-2 588H44" stroke="#E0D1BD" stroke-width="2.5"/><rect x="-7" y="560" width="56" height="9" rx="3" fill="#E3D5C2"/>';
 
   const M=SKINS[skin].map,sk=x=>M?x.replace(/#[0-9A-Fa-f]{6}\b/g,h=>M[h.toUpperCase()]||h):x;
-  if(P==='night')s+='<g pointer-events="none" aria-hidden="true"><ellipse cx="302" cy="444" rx="78" ry="12" fill="url(#ambient-a)" opacity=".25"/><ellipse cx="290" cy="615" rx="108" ry="29" fill="url(#ambient-a)" opacity=".2"/></g>';
   $('#room').innerHTML=sk(cozyFinish(s,'a'));
   $('#room2').innerHTML=sk(cozyFinish(drawStudy(c,P,L),'b'));
   $('#roomUp').innerHTML=sk(cozyFinish(drawAttic(c,P,L),'c'));
@@ -1388,27 +1375,25 @@ function monthsWithMemos(){const set=new Set();all().forEach(d=>{if(d.place==='t
 function drawStudy(c,P,L){
   let s=cozyRoomBase('b');
   if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa*.55+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
-  s+=cozyWindow('b',P,L)+cozyRug('b',360);
+  s+='<g transform="translate(-8 0)">'+cozyWindow('b',P,L)+'</g>'+cozyRug('b',360);
   [[78,608,72,5],[197,602,36,4],[273,602,35,4],[339,603,19,3]].forEach(([x,y,rx,ry])=>{s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#8E765D" opacity=".2" filter="url(#soft-b)"/>'});
   if(L.floor)s+='<path d="M4 628H42L64 686H26ZM52 628H72L94 686H74Z" fill="'+L.floor+'" opacity="'+L.fa*.55+'" pointer-events="none"/>';
 
-  /* A small ring-bound calendar: layered paper, oak backing and copper rings. */
-  const td=new Date(),nd=nextDday(),cx=177;
-  s+=furn('dday','달력'+(nd?' · '+nd.title+' '+nd.lab:''))+'<g transform="translate(27 35) scale(.82)"><rect class="tap" x="148" y="199" width="59" height="138"/>';
-  s+='<g filter="url(#lift-b)"><path d="M160 213 177 201 194 213" stroke="#A9825E" stroke-width="1" fill="none"/><circle cx="177" cy="201" r="1.7" fill="#B88D64"/>'+
-    '<rect x="150" y="212" width="54" height="94" rx="3" fill="#D6B189"/><rect x="152" y="216" width="50" height="87" rx="2" fill="#E6DACA"/>'+
-    '<rect x="153" y="214" width="48" height="85" rx="2" fill="#FFFDF8"/><path d="M153 235V216a2 2 0 0 1 2-2h44a2 2 0 0 1 2 2v19Z" fill="#C99277"/>'+
-    '<path d="M156 299H198M156 301H198" stroke="#D9CAB6" stroke-width=".65"/>'+
-    '<path d="M156 295H194L201 288V295a4 4 0 0 1-4 4H156Z" fill="#F4ECE1" opacity=".5"/>'+
-    '<path d="M194 295v-6h7" fill="#EDE2D3"/>';
-  [163,191].forEach(x=>{s+='<circle cx="'+x+'" cy="218" r="1.7" fill="#A97660"/><path d="M'+(x-1.7)+' 218v-5a1.7 1.7 0 0 1 3.4 0v5" fill="none" stroke="#8C7458" stroke-width="1.1" stroke-linecap="round"/><path d="M'+(x-1)+' 212v4" stroke="#E6CDAA" stroke-width=".45"/>'});
-  s+='<text class="cal-m" x="177" y="227" dominant-baseline="central">'+(td.getMonth()+1)+'월</text>'+
-    '<text x="177" y="246" text-anchor="middle" style="font:5.5px var(--font-ko);letter-spacing:1.3px;fill:#B9A58C">'+td.getFullYear()+'</text>'+
-    '<text class="cal-d'+(td.getDay()===0?' sun':'')+'" x="177" y="264" dominant-baseline="central">'+td.getDate()+'</text>'+
-    '<text class="cal-w" x="177" y="282" dominant-baseline="central">'+WD[td.getDay()]+'요일</text>';
-  if(nd){const t=Array.from(nd.title),title=t.length>4?t.slice(0,4).join('')+'…':nd.title;s+='<rect x="155" y="288" width="44" height="23" rx="2" fill="#F1E5D2"/><text class="cal-dd" x="177" y="295" style="font-size:6.1px" dominant-baseline="central">'+esc(title)+'</text><text class="cal-dd cal-ddn" x="177" y="305" style="font-size:8.6px" dominant-baseline="central">'+nd.lab+'</text>'}
-  else s+='<path d="M164 290H190" stroke="#E6DACA" stroke-width=".6"/><circle cx="177" cy="290" r="1.5" fill="#C99277"/>';
-  s+='</g></g>'+pill(173,nd?311:306,'달력')+'</g>';
+  /* Reference calendar: terracotta header, white paper and a large date. */
+  const td=new Date(),nd=nextDday();
+  s+=furn('dday','달력'+(nd?' · '+nd.title+' '+nd.lab:''))+'<rect class="tap" x="148" y="211" width="49" height="123"/>';
+  s+='<path d="M172.5 215v7" stroke="#A9825E" stroke-width="1"/><circle cx="172.5" cy="214" r="1.6" fill="#A9825E"/>'+
+    '<rect x="151" y="227" width="46" height="80" rx="2" fill="#8C7458" opacity=".1" filter="url(#soft-b)"/>'+
+    '<rect x="152" y="228" width="42" height="81" rx="1.5" fill="#E6DACA"/><rect x="151" y="226" width="44" height="81" rx="1.5" fill="#FAF6F0"/>'+
+    '<rect x="150" y="224" width="46" height="80" rx="2" fill="#FFFDF8"/>'+
+    '<path d="M150 242v-16a2 2 0 0 1 2-2h42a2 2 0 0 1 2 2v16Z" fill="#C99277" style="fill:#C99277"/>';
+  [160,185].forEach(x=>{s+='<path d="M'+(x-1.5)+' 225v-3a1.5 1.5 0 0 1 3 0v3" stroke="#8C7458" stroke-width="1" fill="none" stroke-linecap="round"/>'});
+  s+='<text class="cal-m" x="172.5" y="234" style="font-size:8px" dominant-baseline="central">'+(td.getMonth()+1)+'월</text>'+
+    '<text class="cal-reference-date" x="172.5" y="264" dominant-baseline="central">'+td.getDate()+'</text>'+
+    '<text class="cal-w" x="172.5" y="284" style="font-size:7.8px" dominant-baseline="central">'+WD[td.getDay()]+'요일</text>';
+  if(nd)s+='<text class="cal-dd cal-ddn" x="172.5" y="298" style="font-size:7.2px" dominant-baseline="central">'+esc(nd.lab)+'</text>';
+  else s+='<path d="M158 297H187" stroke="#E6DACA" stroke-width=".8"/>';
+  s+=pill(172.5,323,'달력')+'</g>';
 
   /* Continuous tabletop: the left end is intentionally outside the viewport. */
   s+='<path d="M145 462h6l-2 142h-3Z" fill="#A9825E"/><path d="M146 463v134" stroke="#E6CDAA" stroke-width=".65" opacity=".5"/>'+
@@ -1470,30 +1455,13 @@ function drawStudy(c,P,L){
   s+='<path d="M272 545h21l-2 25h-17Z" fill="#F4ECE1"/><path d="M277 547v-7a5.5 5.5 0 0 1 11 0v7" stroke="#C99277" stroke-width="1.4" fill="none"/><circle cx="282.5" cy="557" r="2.3" fill="#E3C3BA"/>';
   s+=pill(276,618,'행거')+'</g>';
 
-  /* Raised mezzanine: a sloped ceiling, warm reading light and a real landing. */
-  s+=navf('up','옥탑방으로 올라가기')+'<rect class="tap" x="201" y="105" width="159" height="183"/>';
-  s+='<g transform="translate(-45 -6) scale(1.125 1)"><defs><clipPath id="loft-b"><path d="M223 123 355 198V255H223Z"/></clipPath></defs>'+
-    '<path d="M224 124 357 199V259H224Z" fill="#8C7458" opacity=".16" filter="url(#soft-b)"/>'+
-    '<g clip-path="url(#loft-b)"><path d="M223 123 355 198V255H223Z" fill="#D6B189"/><path d="M223 123H236V255H223Z" fill="#B88D64"/>'+
-    '<path d="M237 132 355 199V255H237Z" fill="url(#oak-b)"/>';
-  [154,181,208,235].forEach(y=>{s+='<path d="M237 '+y+' 355 '+(y+67)+'" stroke="#A9825E" stroke-width=".65" opacity=".24"/>'});
-  s+='<ellipse cx="250" cy="196" rx="66" ry="64" fill="url(#warm-b)" opacity="'+(P==='night'?1:.95)+'"/>'+
-    '<path d="M249 143V178" stroke="#A9825E" stroke-width=".8"/><rect x="246.5" y="176" width="5" height="5" rx="1.3" fill="#B88D64"/><ellipse cx="249" cy="185" rx="5.5" ry="7" fill="#FFF1D2"/>'+
-    '<rect x="275" y="233" width="53" height="17" rx="5" fill="#E3C3BA"/><path d="M279 236q20-4 45 0M281 246h40" stroke="#D9AFA8" stroke-width=".7" fill="none"/>'+
-    '<path d="M282 233 284 215Q296 212 309 216L307 234Z" fill="#F4ECE1"/><path d="M286 217q10-2 19 1M284 230q10 3 22 1" stroke="#E6DACA" stroke-width=".8" fill="none"/>'+
-    '<rect x="237" y="226" width="5" height="27" rx=".5" fill="#8FA58E"/><rect x="243" y="221" width="5" height="32" rx=".5" fill="#AFC2AE"/><rect x="249" y="230" width="5" height="23" rx=".5" fill="#F4ECE1"/><path d="M239 228v20M245 223v26" stroke="#F4ECE1" stroke-width=".5" opacity=".6"/>'+
-    '<path d="M330 253h15l-2-11h-11Z" fill="#F4ECE1"/>'+leaf(337,244,329,230,3,'#93AC95')+leaf(337,244,345,230,3,'#7F9A84')+'</g>'+
-    '<path d="M220 118 357 196" stroke="#FAF6F0" stroke-width="4.5" stroke-linecap="square"/><path d="M221 121V255" stroke="#E4D3BE" stroke-width="4"/>'+
-    '<path d="M222 229H356" stroke="#C99E73" stroke-width="3.2" stroke-linecap="round"/>';
-  [230,247,264,281,298,315].forEach(x=>{s+='<rect x="'+x+'" y="230" width="2.4" height="24" rx=".6" fill="#C99E73"/><path d="M'+(x+.4)+' 232v20" stroke="#E6CDAA" stroke-width=".45"/>'});
-  s+='<rect x="220" y="253" width="137" height="7" rx="1.5" fill="#C99E73"/><path d="M221 254H355" stroke="#E6CDAA" stroke-width=".65"/>';
-  s+='</g>';
-  s+='<g pointer-events="none"><path d="M344 240Q339 251 345 265T342 295M350 239q10 16 0 31t3 22" fill="none" stroke="#7F9A84" stroke-width=".85"/>';
-  [[344,248,336,254],[345,258,352,264],[344,273,336,279],[343,287,348,293],[351,252,358,258],[351,270,344,276],[352,283,359,289]].forEach(([bx,by,tx,ty])=>{s+=leaf(bx,by,tx,ty,3,'#7F9A84')});
-  s+='</g>'+pill(275,277,'옥탑방')+'</g>';
-  s+=navf('up','사다리로 옥탑방 올라가기')+'<rect class="tap" x="319" y="253" width="40" height="356"/>';
-  for(let y=279;y<598;y+=37){const t=(y-254)/350,l=331-t*7,r=353-t*4;s+='<path d="M'+f(l+1)+' '+y+'H'+f(r-1)+'" stroke="#B88D64" stroke-width="2.6" stroke-linecap="round"/><path d="M'+f(l+1)+' '+(y-.8)+'H'+f(r-1)+'" stroke="#E6CDAA" stroke-width=".5"/>'}
-  s+='<path d="M324 604 331 253M349 604 353 253" stroke="#C99E73" stroke-width="3.6" stroke-linecap="round"/><path d="M323.6 600 330.6 257M348.6 600 352.6 257" stroke="#E6CDAA" stroke-width=".65" opacity=".6"/>';
+  /* Reuse the approved reference pixels directly; crop only at render time. */
+  s+=navf('up','옥탑방으로 올라가기')+'<rect class="tap" x="199" y="118" width="159" height="178"/>';
+  s+='<svg x="197" y="120" width="160" height="160" viewBox="410 270 330 330" preserveAspectRatio="none" pointer-events="none" aria-hidden="true"><defs><clipPath id="loft-reference-crop" clipPathUnits="userSpaceOnUse"><path d="M410 271 735 456V556H410Z"/><rect x="649" y="550" width="77" height="40"/></clipPath></defs><image class="loft-art" href="assets/loft-reference-source.jpg" x="0" y="0" width="747" height="1536" clip-path="url(#loft-reference-crop)"/></svg>';
+  s+=pill(277,279,'옥탑방')+'</g>';
+  s+=navf('up','사다리로 옥탑방 올라가기')+'<rect class="tap" x="312" y="253" width="44" height="356"/>';
+  for(let y=293;y<598;y+=37){const t=(y-275)/329,l=317+t,r=347+t*4;s+='<path d="M'+f(l+1)+' '+y+'H'+f(r-1)+'" stroke="#B88D64" stroke-width="2.6" stroke-linecap="round"/><path d="M'+f(l+1)+' '+(y-.8)+'H'+f(r-1)+'" stroke="#E6CDAA" stroke-width=".5"/>'}
+  s+='<path d="M318 604 317 275M351 604 347 275" stroke="#C99E73" stroke-width="4" stroke-linecap="round"/><path d="M317.5 600 316.5 277M350.5 600 346.5 277" stroke="#E6CDAA" stroke-width=".65" opacity=".6"/>';
   s+='</g>';
   return s;
 }
