@@ -480,6 +480,10 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 .fld input:focus,.fld textarea:focus{border-color:var(--accent-2)}
 .fld textarea{resize:vertical;min-height:64px;line-height:1.5}
 .w-photo{margin-top:12px}
+.link-row{display:flex;gap:6px;min-width:0}
+.link-row input{flex:1}
+.link-row .btn{flex:none;min-height:44px;font-size:14px}
+.w-st{margin:2px 2px 0;font-size:12.5px;color:var(--accent)}
 .w-ph{position:relative;width:min(100%,240px);aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:var(--chip);border:3px solid #FFFFFF;box-shadow:0 2px 6px rgba(60,40,20,.15)}
 .w-ph img{width:100%;height:100%;object-fit:cover;display:block}
 .w-ph.add{display:grid;place-items:center;align-content:center;gap:6px;width:100%;height:132px;aspect-ratio:auto;border:1.5px dashed var(--line);background:transparent;box-shadow:none;color:var(--muted);font-size:14px}
@@ -662,10 +666,10 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 <div id="wBack" class="scrim qback" hidden data-act="w-close"></div>
 <div id="wsheet" class="sheet qsheet" hidden role="dialog" aria-labelledby="wT">
   <div class="sheet-head"><b id="wT">행거에 걸기</b><button class="btn primary" data-act="w-save">완료</button></div>
+  <div class="fld"><label for="wLink">링크</label><div class="link-row"><input id="wLink" type="url" inputmode="url" placeholder="쇼핑몰 링크를 붙여넣으면 알아서 채워요" autocomplete="off"><button type="button" class="btn" data-act="w-paste">붙여넣기</button></div><p class="w-st" id="wSt" hidden></p></div>
   <div class="w-photo" id="wPhoto"></div>
-  <label class="fld"><span>이름</span><input id="wName" maxlength="60" placeholder="예: 울 코트" autocomplete="off"></label>
+  <label class="fld"><span>이름</span><input id="wName" maxlength="80" placeholder="예: 울 코트" autocomplete="off"></label>
   <label class="fld"><span>가격</span><input id="wPrice" maxlength="20" inputmode="numeric" placeholder="129000" autocomplete="off"></label>
-  <label class="fld"><span>링크</span><input id="wLink" type="url" inputmode="url" placeholder="https://" autocomplete="off"></label>
   <label class="fld"><span>메모</span><textarea id="wNote" rows="2" placeholder="사이즈, 색상 같은 거"></textarea></label>
   <div class="q-acts"><button class="btn ghost danger" id="wTrash" data-act="w-trash">버리기</button><span class="sp"></span><a class="btn ghost" id="wGo" target="_blank" rel="noopener" hidden>링크 열기</a><button class="btn" id="wBought" data-act="w-bought">샀어요</button></div>
 </div>
@@ -944,7 +948,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='15';
+const APP_VERSION='16';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1610,13 +1614,12 @@ function wishHTML(){
 }
 function openW(id){
   const d=id&&get(id),ph=d?((d.photos||[])[0]||null):null;
-  w={id:d?d.id:null,photo:ph,om:d?{...(d.orig||{})}:{},dropped:[],busy:false};
+  w={id:d?d.id:null,photo:ph,om:d?{...(d.orig||{})}:{},dropped:[],busy:false,fetched:d?normUrl(d.link):''};wStatus('');
   $('#wT').textContent=d?'위시 고치기':'행거에 걸기';
   $('#wName').value=d?(d.title||''):'';$('#wPrice').value=d?(d.price||''):'';$('#wLink').value=d?(d.link||''):'';$('#wNote').value=d?noteText(d):'';
   $('#wTrash').hidden=!d;$('#wBought').hidden=!d;$('#wBought').textContent=d&&d.bought?'다시 갖고 싶어요':'샀어요';
   wLinkBtn();renderWPhoto();
   $('#wBack').hidden=false;$('#wsheet').hidden=false;
-  if(!d)setTimeout(()=>$('#wName').focus(),60);
 }
 function wLinkBtn(){const u=normUrl($('#wLink').value),a=$('#wGo');a.hidden=!u;if(u)a.href=u;else a.removeAttribute('href')}
 function renderWPhoto(){
@@ -1631,10 +1634,41 @@ async function wAddPhoto(files){
   ww.busy=false;if(ref){if(ww.photo)ww.dropped.push(...forget(ww.om,ww.photo));ww.photo=ref}
   if(w===ww)renderWPhoto();else if(ref)dropAsset(ref);
 }
+/* paste a shop link: a small server function reads the page and fills in what's still empty */
+let wFetchT=0;
+function wStatus(t){const el=$('#wSt');el.hidden=!t;el.textContent=t||''}
+function wLinkInput(){
+  const inp=$('#wLink'),v=inp.value,m=/\s/.test(v.trim())&&v.match(/https?:\/\/[^\s<>"']+/);
+  if(m)inp.value=m[0];
+  wLinkBtn();clearTimeout(wFetchT);
+  const u=normUrl(inp.value);if(!u||!w||u===w.fetched)return;
+  wFetchT=setTimeout(()=>wFetch(u),450);
+}
+async function wFetch(u){
+  const ww=w;if(!ww||mode!=='cloud'||!sb)return;
+  ww.fetched=u;wStatus('링크에서 정보 가져오는 중…');
+  let data=null,err=null;
+  try{const r=await sb.functions.invoke('link-preview',{body:{url:u}});if(r.error)err=r.error;else data=r.data}catch(e){err=e}
+  if(w!==ww)return;
+  if(err){const st=err.context&&err.context.status;wStatus(st===404?'링크 읽는 기능이 아직 서버에 없어요':st===401?'로그인을 다시 확인해 주세요':'지금은 링크를 못 읽었어요. 직접 적어 주세요');return}
+  if(!data||data.error){wStatus('이 사이트는 정보를 못 읽었어요. 직접 적어 주세요');return}
+  const got=[];
+  if(data.title&&!$('#wName').value.trim()){$('#wName').value=String(data.title).slice(0,80);got.push('이름')}
+  if(data.price&&!$('#wPrice').value.trim()){$('#wPrice').value=(!data.currency||/KRW/i.test(data.currency))?Number(data.price).toLocaleString('ko-KR')+'원':data.price+' '+data.currency;got.push('가격')}
+  if(data.image&&!ww.photo&&!ww.busy&&canPhoto()){
+    wStatus('사진 저장하는 중…');ww.busy=true;renderWPhoto();
+    let ref=null;
+    try{const blob=await (await fetch(data.image)).blob();ref=await uploadOne(new File([blob],'link.'+((blob.type.split('/')[1]||'jpg').replace('jpeg','jpg')),{type:blob.type}))}catch(e){}
+    ww.busy=false;
+    if(ref&&w===ww&&!ww.photo){ww.photo=ref;got.push('사진')}else if(ref)dropAsset(ref);
+    if(w===ww)renderWPhoto();
+  }
+  if(w===ww)wStatus(got.length?got.join(', ')+' 채웠어요':'비어 있는 칸이 없어서 그대로 뒀어요');
+}
 function closeW(){$('#wBack').hidden=true;$('#wsheet').hidden=true;w=null}
 function saveW(bought){
   if(!w)return;if(w.busy){toast('사진을 올리는 중이에요. 잠깐만요');return}
-  const name=$('#wName').value.trim().slice(0,60),price=fmtPrice($('#wPrice').value),link=normUrl($('#wLink').value),note=$('#wNote').value.replace(/\s+$/,'');
+  const name=$('#wName').value.trim().slice(0,80),price=fmtPrice($('#wPrice').value),link=normUrl($('#wLink').value),note=$('#wNote').value.replace(/\s+$/,'');
   const has=name||w.photo||link||note.trim(),photos=w.photo?[w.photo]:[],blocks=note.split('\n').map(x=>({t:'p',x}));
   if(w.id){const d=get(w.id);if(d){
     if(!has){trashDoc(d.id);const id=d.id;toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}
@@ -2232,6 +2266,7 @@ document.addEventListener('click',e=>{
     case 'w-bought':{const d=w&&w.id&&get(w.id);saveW(!(d&&d.bought));break}
     case 'w-trash':{if(!w)break;const id=w.id,keep=w;closeW();if(keep.photo&&id&&get(id)&&(get(id).photos||[])[0]!==keep.photo)dropAsset(keep.photo);if(id&&get(id)){trashDoc(id);toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}break}
     case 'w-ph-add':if(w){pickTarget='wish';$('#fileIn').click()}break;
+    case 'w-paste':(async()=>{try{const t=await navigator.clipboard.readText();if(t&&w){$('#wLink').value=t.trim();wLinkInput()}else $('#wLink').focus()}catch(e){$('#wLink').focus();toast('링크 칸을 꾹 눌러서 붙여넣어 주세요')}})();break;
     case 'w-ph-rm':if(w&&w.photo){w.dropped.push(...forget(w.om,w.photo));w.photo=null;renderWPhoto()}break;
     case 'w-crop':{if(!w||!w.photo)break;const ww=w;openCrop(ww.photo,origOf(ww.om,ww.photo),(ref,old,info)=>{const r=cropSwap([ww.photo],ww.om,old,ref,info);if(!r){if(info)dropAsset(ref);return}ww.photo=r.ph[0];ww.om=r.o;ww.dropped.push(...r.drop);if(w===ww)renderWPhoto()});break}
     case 'dday-new':openD(null);break;
@@ -2350,7 +2385,7 @@ $('#fileIn').addEventListener('change',async()=>{
   await addPhotos(files);
 });
 $('#q').addEventListener('input',renderSearch);
-$('#wLink').addEventListener('input',wLinkBtn);
+$('#wLink').addEventListener('input',wLinkInput);
 $('#dDate').addEventListener('input',ddPrev);$('#dDate').addEventListener('change',ddPrev);
 $('#wName').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();$('#wPrice').focus()}});
 $('#dName').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();$('#dDate').focus()}});
