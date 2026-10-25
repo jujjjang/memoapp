@@ -471,6 +471,14 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
 .skin.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
 .skin.on::after{content:'';position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 12.5 4 4 8-9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
 #settings .acct{margin-top:0;border-top:0;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.time-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.time-option{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:7px;font:inherit;cursor:pointer}
+.time-option[aria-checked="true"]{border-color:var(--fab);box-shadow:0 0 0 1px var(--fab)}
+.time-option span{display:block;height:52px;border-radius:7px;margin-bottom:6px;background-position:center 42%;background-size:cover}
+.time-option b{font-size:12px;font-weight:600}
+.time-option .time-auto{display:grid;place-items:center;background:var(--surface2,#F1E9DD);color:var(--hud-sub)}
+.time-auto svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.4}
+.time-help{margin:9px 1px 0;font-size:12px;color:var(--hud-sub);line-height:1.5}
 .set-ver{margin:28px 0 0;font-size:12px;color:var(--muted)}
 /* cork board: two rows that slide sideways, like the scrapbook */
 .board{grid-template-columns:none;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:calc((100% - 14px)/2);gap:22px 14px;align-items:start;
@@ -632,6 +640,9 @@ body.ed-kb::before{content:'';position:fixed;left:0;right:0;top:0;height:200vh;z
     <header class="p-head"><h2 id="setT">설정</h2><p>방 분위기와 계정</p></header>
     <h3 class="set-h">방 테마</h3>
     <div class="skins" id="skinList" role="radiogroup" aria-label="방 테마"></div>
+    <h3 class="set-h">방의 시간</h3>
+    <div class="time-grid" id="timeList" role="radiogroup" aria-label="방의 시간"></div>
+    <p class="time-help">자동은 기기 시간에 맞춰 낮·노을·밤으로 바뀌어요.</p>
     <div id="inboxWrap" hidden><h3 class="set-h">단축어로 바로 걸기</h3><div class="inbox" id="inboxBox"></div></div>
     <div id="acctWrap" hidden><h3 class="set-h">계정</h3><div class="acct" id="acct"><span id="acctEmail"></span><button class="btn ghost" data-act="logout">로그아웃</button></div></div>
     <p class="set-ver" id="setVer"></p>
@@ -801,6 +812,15 @@ const SKINS={
   }}
 };
 const SKIN_KEY='idea-room-skin';
+const ROOM_TIME_KEY='idea-room-time';
+const ROOM_TIMES={auto:'자동',day:'낮',dusk:'노을',night:'밤'};
+let roomTime=(()=>{try{const value=localStorage.getItem(ROOM_TIME_KEY);return Object.hasOwn(ROOM_TIMES,value)?value:'auto'}catch(e){return 'auto'}})();
+function setRoomTime(value,save=true){
+  if(!Object.hasOwn(ROOM_TIMES,value))return;
+  roomTime=value;try{localStorage.setItem(ROOM_TIME_KEY,value)}catch(e){}
+  renderRoom();renderSettings();
+  if(save)savePrefs();
+}
 let skin=(()=>{try{const k=localStorage.getItem(SKIN_KEY);return SKINS[k]?k:'beige'}catch(e){return 'beige'}})();
 function skinCol(h){const m=SKINS[skin].map;return m&&m[h]||h}
 function setSkin(id,save){
@@ -824,6 +844,7 @@ function skinThumb(id){
 }
 function renderSettings(){
   if($('#settings').hidden)return;
+  $('#timeList').innerHTML=Object.entries(ROOM_TIMES).map(([id,label])=>'<button class="time-option" role="radio" aria-checked="'+(roomTime===id)+'" data-act="room-time" data-time="'+id+'">'+(id==='auto'?'<span class="time-auto" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l4 2.5"/></svg></span>':'<span aria-hidden="true" style="background-image:url(assets/room-v3/view-'+id+'.webp)"></span>')+'<b>'+label+'</b></button>').join('');
   $('#skinList').innerHTML=Object.keys(SKINS).map(id=>{const k=SKINS[id],on=id===skin;
     return '<button class="skin'+(on?' on':'')+'" role="radio" aria-checked="'+on+'" data-act="skin" data-skin="'+id+'">'+skinThumb(id)+'<b>'+esc(k.name)+'</b><span class="sw">'+k.sw.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span></button>'}).join('');
   $('#acctWrap').hidden=mode!=='cloud';$('#acctEmail').textContent=myEmail?myEmail+' 계정으로 쓰는 중':'';
@@ -865,8 +886,9 @@ function applyPrefs(p){
   const wc=Array.isArray(p.wcats)?p.wcats.filter(c=>c&&c.id).map(c=>({id:String(c.id),name:String(c.name||'분류').slice(0,10)})):null;
   wcats=wc&&wc.length?wc:DEF_WCATS.map(c=>({...c}));
   if(p.theme&&SKINS[p.theme]&&p.theme!==skin)setSkin(p.theme);
+  if(Object.hasOwn(ROOM_TIMES,p.roomTime)&&p.roomTime!==roomTime)setRoomTime(p.roomTime,false);
 }
-const prefsObj=()=>({1:names[1],2:names[2],3:names[3],topics,wcats,theme:skin});
+const prefsObj=()=>({1:names[1],2:names[2],3:names[3],topics,wcats,theme:skin,roomTime});
 const topicOf=d=>{const t=topics.find(t=>t.id===d.topic);return t?t.id:topics[0].id};
 const topicCol=id=>TOPIC_COL[Math.max(0,topics.findIndex(t=>t.id===id))%TOPIC_COL.length];
 
@@ -1039,7 +1061,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='28';
+const APP_VERSION='29';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1138,7 +1160,7 @@ function leaf(bx,by,tx,ty,w,col,vein){
 const furn=(go,label,id)=>'<g class="furn"'+(id?' id="'+id+'"':'')+' data-go="'+go+'" role="button" tabindex="0" aria-label="'+esc(label)+'">';
 
 /* time of day: 17–19 sunset, 19–6 night, otherwise day */
-function period(){const h=new Date().getHours();return h>=17&&h<19?'dusk':(h>=19||h<6)?'night':'day'}
+function period(){if(roomTime!=='auto')return roomTime;const h=new Date().getHours();return h>=17&&h<19?'dusk':(h>=19||h<6)?'night':'day'}
 const LOOK={
   day:  {sky:['#C8D8E2','#EAEFEE'],tree:['#BACAB4','#A9BBA3'],bld:['#DAE2E7','#D1DAE0'],wall:'#E9E0D3',wa:.85,floor:'#FFFBF5',fa:.75,glare:.6},
   dusk: {sky:['#D9A6A0','#F4D3B4'],tree:['#AFA697','#9C9584'],bld:['#D8BDB6','#CDB0AA'],wall:'#F8DCC6',wa:.8,floor:'#FBE3CF',fa:.65,glare:.4},
@@ -1157,7 +1179,7 @@ function crumple(cx,cy,r,seed){
 
 /* Shared materials and room geometry keep both swipe pages in the same room. */
 function cozyDefs(id){
-  const night=period()==='night';
+  const mood={day:['#E9E0D3','#E4D9C8','#DECBAF','#D8C2A3'],dusk:['#E8D7C4','#E0CCB4','#DDC3A5','#D5B997'],night:['#DFD3C3','#DDD0BE','#D9C3A6','#D2BB9E']}[period()];
   const pastel=(name,k,sat)=>{
     const lum=[.2126,.7152,.0722],cream=[.965,.925,.863],m=[];
     for(let row=0;row<3;row++)m.push(...lum.map((v,col)=>k*((row===col?sat:0)+(1-sat)*v)),0,(1-k)*cream[row]);
@@ -1170,8 +1192,8 @@ function cozyDefs(id){
     gradient('ivory-',[[0,'#FBF8F2'],[.55,'#F4ECE1'],[1,'#E6DACA']])+
     gradient('linen-',[[0,'#FBF8F2'],[1,'#EDE2D3']])+
     gradient('clay-',[[0,'#C99277'],[.55,'#C99277'],[1,'#A97A5E']])+
-    '<linearGradient id="wall-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="560"><stop stop-color="'+'#DFD3C3'+'"/><stop offset=".5" stop-color="'+'#DFD3C3'+'"/><stop offset="1" stop-color="'+'#DDD0BE'+'"/></linearGradient>'+
-    '<linearGradient id="floor-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="560" x2="0" y2="740"><stop stop-color="'+'#D9C3A6'+'"/><stop offset="1" stop-color="'+'#D2BB9E'+'"/></linearGradient>'+
+    '<linearGradient id="wall-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="560"><stop stop-color="'+mood[0]+'"/><stop offset=".5" stop-color="'+mood[0]+'"/><stop offset="1" stop-color="'+mood[1]+'"/></linearGradient>'+
+    '<linearGradient id="floor-'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="560" x2="0" y2="740"><stop stop-color="'+mood[2]+'"/><stop offset="1" stop-color="'+mood[3]+'"/></linearGradient>'+
     '<radialGradient id="warm-'+id+'"><stop stop-color="#FFD38C" stop-opacity=".95"/><stop offset=".4" stop-color="#FFE3A6" stop-opacity=".6"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>'+
     '<radialGradient id="ambient-'+id+'"><stop stop-color="#FFF0CD" stop-opacity=".74"/><stop offset=".35" stop-color="#FFE4B5" stop-opacity=".4"/><stop offset=".7" stop-color="#FFDFAB" stop-opacity=".13"/><stop offset="1" stop-color="#FFDFAB" stop-opacity="0"/></radialGradient>'+
     '<linearGradient id="beam-'+id+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#FFFBF5" stop-opacity=".55"/><stop offset="1" stop-color="#FFFBF5" stop-opacity="0"/></linearGradient>'+
@@ -1196,46 +1218,25 @@ function cozyRoomBase(id){
     '<g fill="none" stroke="#8C7458" stroke-width=".55" opacity=".12"><path d="M-1600 591H1960M-1600 637H1960M-1600 699H1960M86 560v31M294 560v31M194 591v46M24 637v62M307 637v62"/></g>';
 }
 function cozyRug(id,offset){
-  return '<g transform="translate('+(-offset)+' 0)" pointer-events="none"><path d="M34 616H650L676 702H8Z" fill="#8C7458" opacity=".12" filter="url(#soft-'+id+')"/>'+
-    '<path d="M34 612H650L676 698H8Z" fill="url(#linen-'+id+')" stroke="#F3ECE2" stroke-width="6" stroke-linejoin="round"/>'+
-    '<path d="M34 612H650L676 698H8Z" fill="url(#weave-'+id+')"/>'+
-    '<path d="M46 622H638L660 690H24Z" fill="none" stroke="#D9CAB6" stroke-width="1.2"/>'+
-    '<path d="M49 626H635L654 686H30Z" fill="none" stroke="#E5D8C6" stroke-width=".65" stroke-dasharray="1 2"/></g>';
+  return furnitureArt('rug',8-offset,608,668,108,id,'top');
 }
 function cozyCurtain(id){
-  let s='<g pointer-events="none"><path d="M4 120H160" stroke="#CDB89D" stroke-width="2" stroke-linecap="round"/>';
-  [8,18,29,40].forEach(x=>{s+='<ellipse cx="'+x+'" cy="122" rx="2" ry="2.7" fill="none" stroke="#D9CAB6" stroke-width=".9"/>'});
-  s+='<path d="M0 124H44C40 210 48 300 42 380C38 450 46 500 44 548H0Z" fill="url(#linen-'+id+')" opacity=".94"/>'+
-    '<path d="M8 126Q3 280 9 426L7 548M22 126Q28 310 22 430L24 548M37 126Q33 280 39 426L37 548" fill="none" stroke="#D9CAB6" stroke-width="2.2" opacity=".35"/>'+
-    '<path d="M13 126Q18 280 14 426L15 548M31 126Q26 280 32 426L30 548" fill="none" stroke="#FFFBF5" stroke-width="3" opacity=".6"/>'+
-    '<path d="M0 124H44C40 210 48 300 42 380C38 450 46 500 44 548H0Z" fill="url(#weave-'+id+')" opacity=".5"/>'+
-    '<path d="M0 543Q22 547 44 543" fill="none" stroke="#D9CAB6" stroke-width=".6"/></g>';
-  return s;
+  const a=FURNITURE_ART.curtain,h=435,w=h*a.box[2]/a.box[3];
+  return '<path d="M-1 117H173" stroke="#CEB89A" stroke-width="1.4" stroke-linecap="round"/>'+furnitureArt('curtain',-7,113,w,h,id,'top');
 }
 function cozyWindow(id,P,L){
-  let s='<defs><linearGradient id="sky-'+id+'" x1="0" y1="0" x2="0" y2="1"><stop stop-color="'+L.sky[0]+'"/><stop offset="1" stop-color="'+L.sky[1]+'"/></linearGradient><clipPath id="pane-'+id+'"><rect x="30" y="138" width="112" height="186"/></clipPath></defs>';
-  s+='<rect x="25" y="134" width="128" height="202" rx="3" fill="#8C7458" opacity=".24" filter="url(#soft-'+id+')"/>'+
-    '<rect x="22" y="130" width="128" height="202" rx="3" fill="#FAF6F0"/>'+
-    '<g clip-path="url(#pane-'+id+')"><rect x="30" y="138" width="112" height="186" fill="url(#sky-'+id+')"/>';
-  if(P==='day')s+='<g fill="#FFFFFF" opacity=".7"><ellipse cx="62" cy="176" rx="13" ry="5"/><ellipse cx="55" cy="173" rx="7" ry="5"/></g>';
-  if(P==='dusk')s+='<circle cx="104" cy="272" r="26" fill="#FBE3C0" opacity=".55"/><circle cx="104" cy="272" r="13" fill="#F9D7A5"/>';
-  if(P==='night'){
-    s+='<circle cx="112" cy="176" r="11" fill="#F6E8C3"/><circle cx="117" cy="172" r="10" fill="'+L.sky[0]+'"/>';
-    [[44,162,1],[66,184,.8],[90,154,1.1],[132,212,.8],[52,216,.7],[78,230,.9],[124,242,.7]].forEach(([x,y,r])=>{s+='<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#FFF6DE" class="twinkle"/>'});
-  }
-  s+='<path d="M36 324V264H58V324M60 324V248H76V324M104 324V270H130V324" fill="'+L.bld[0]+'"/><path d="M60 324V248H76V324" fill="'+L.bld[1]+'"/>';
-  if(P==='night')[[40,272],[49,280],[64,256],[64,270],[70,286],[108,278],[121,286],[112,296]].forEach(([x,y])=>{s+='<rect x="'+x+'" y="'+y+'" width="3.5" height="4" fill="#F3D79B"/>'});
-  s+='<circle cx="44" cy="306" r="20" fill="'+L.tree[0]+'"/><circle cx="72" cy="314" r="16" fill="'+L.tree[1]+'"/><circle cx="100" cy="300" r="22" fill="'+L.tree[0]+'"/><circle cx="128" cy="312" r="18" fill="'+L.tree[1]+'"/><rect x="30" y="314" width="112" height="12" fill="'+L.tree[1]+'"/>'+
-    '<g stroke="#FFFFFF" stroke-linecap="round" opacity="'+L.glare+'"><path d="M128 144 104 190M70 236 46 282" stroke-width="4"/><path d="M138 156 118 194M80 248 60 286" stroke-width="1.8"/></g></g>'+
-    '<path d="M31 324V139H142" fill="none" stroke="#B9A58C" stroke-width="1" opacity=".4"/>'+
-    '<rect x="83" y="138" width="6" height="186" fill="#FAF6F0"/><rect x="30" y="226" width="112" height="5" fill="#FAF6F0"/>'+
-    '<path d="M83 138V324M30 231H142" stroke="#D9CAB6" stroke-width=".6" opacity=".7"/>'+
-    '<rect x="16" y="330" width="140" height="9" rx="2" fill="#FAF6F0"/><path d="M20 340H152" stroke="#D9CAB6" stroke-width="2" opacity=".6"/>';
-  s+=leaf(128,319,120,300,4,'#93AC95')+leaf(128,319,137,298,4.5,'#7F9A84')+leaf(128,319,129,293,4,'#A7BDA6')+'<path d="M121 330h15l-2-12h-11Z" fill="#E4D3BE"/>';
+  const a=FURNITURE_ART['window-frame'],frame=furnitureLayout('window-frame',6,119,166,234,'top'),k=frame.w/a.box[2],g=a.glass;
+  const x=frame.x+(g[0]-a.box[0])*k,y=frame.y+(g[1]-a.box[1])*k,w=g[2]*k,h=g[3]*k,clip='window-glass-'+id,view=FURNITURE_ART['view-'+P];
+  let s='<defs><clipPath id="'+clip+'"><rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" rx="1"/></clipPath></defs>'+
+    '<image class="window-scenery" data-period="'+P+'" href="'+view.src+'" x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#'+clip+')"/>';
+  s+=furnitureArt('window-frame',6,119,166,234,id,'top');
+  const px=frame.x+frame.w*.82,base=frame.y+frame.h-5;
+  s+=leaf(px,base-11,px-8,base-29,4,'#93AC95')+leaf(px,base-11,px+9,base-31,4.5,'#7F9A84')+leaf(px,base-11,px+1,base-36,4,'#A7BDA6')+
+    '<path d="M'+f(px-7.5)+' '+f(base)+'h15l-2-12h-11Z" fill="#E4D3BE"/>';
   return s+cozyCurtain(id);
 }
 
-const FURNITURE_ART={"bookcase":{"src":"assets/furniture-v1/bookcase.webp","width":936,"height":1680,"box":[223,83,491,1515]},"calendar-base":{"src":"assets/furniture-v2/calendar-base.webp","width":916,"height":1717,"box":[71,129,774,1475],"fresh":true,"clipPath":"M449.5 129.0L466.0 128.5L481.0 135.5L490.5 146.0L495.5 161.0L492.5 182.0L488.5 188.0L473.5 201.0L473.5 287.0L475.0 288.5L653.0 287.5L653.5 265.0L655.5 258.0L662.0 250.5L673.0 248.5L679.0 250.5L686.5 259.0L689.0 287.5L805.0 288.5L815.0 290.5L824.0 294.5L832.5 301.0L838.5 309.0L843.5 322.0L844.5 504.0L839.5 511.0L842.5 1478.0L839.5 1495.0L832.5 1506.0L831.5 1540.0L824.5 1554.0L818.5 1559.0L814.5 1578.0L802.0 1594.5L796.0 1598.5L781.0 1603.5L135.0 1603.5L118.0 1597.5L106.5 1587.0L98.5 1570.0L98.5 1561.0L88.5 1549.0L84.5 1539.0L83.5 1506.0L76.5 1494.0L73.5 1480.0L77.5 514.0L71.5 505.0L70.5 497.0L72.5 322.0L78.5 307.0L86.0 299.5L86.5 300.0L87.0 300.5L89.0 296.5L105.0 289.5L227.0 287.5L228.5 261.0L231.5 255.0L235.5 253.0L235.0 251.5L239.0 249.5L243.0 250.5L243.0 248.5L253.0 250.5L258.5 256.0L262.5 270.0L262.5 287.0L268.0 288.5L442.0 287.5L443.5 286.0L442.5 201.0L433.0 194.5L425.5 186.0L421.5 177.0L420.5 161.0L423.5 150.0L429.5 141.0L439.0 132.5L449.5 129.0Z"},"drawer-cabinet":{"src":"assets/furniture-v2/drawer-cabinet.webp","width":1072,"height":1467,"box":[95,244,883,1095],"fresh":true,"clipPath":"M393.5 244.0L897.0 244.5L902.0 246.5L918.0 259.5L976.5 312.0L976.5 350.0L971.0 355.5L960.0 355.5L958.5 357.0L958.5 1252.0L953.0 1256.5L931.0 1256.5L929.5 1259.0L922.5 1330.0L921.5 1334.0L918.0 1337.5L891.0 1338.5L878.5 1328.0L860.0 1256.5L211.0 1256.5L193.5 1327.0L181.0 1338.5L154.0 1338.5L149.5 1334.0L141.5 1259.0L140.0 1256.5L117.0 1256.5L111.5 1250.0L111.5 357.0L110.0 355.5L97.0 354.5L94.5 351.0L94.5 312.0L133.0 276.5L142.0 270.5L165.0 249.5L174.0 244.5L393.5 244.0Z","fronts":[[0.1397,0.3671],[0.4,0.6247],[0.6566,0.8776]],"surface":0.045},"continuous-desk":{"src":"assets/furniture-v2/continuous-desk.webp","width":1536,"height":1024,"box":[61,133,1415,803],"fresh":true,"clipPath":"M294.5 133.0L1402.0 132.5L1418.0 134.5L1470.0 163.5L1474.5 168.0L1475.5 172.0L1474.5 193.0L1471.0 196.5L1464.0 198.5L1429.0 197.5L1427.5 199.0L1432.5 853.0L1430.5 930.0L1426.0 933.5L1421.0 934.5L1407.0 934.5L1398.5 930.0L1396.5 923.0L1375.5 401.0L1370.5 292.0L1368.0 279.5L1345.0 278.5L1343.5 281.0L1340.5 427.0L1337.5 486.0L1338.5 505.0L1336.5 516.0L1331.5 706.0L1331.5 757.0L1329.5 784.0L1330.5 793.0L1326.0 801.5L1309.0 802.5L1302.5 798.0L1301.5 794.0L1298.5 529.0L1299.5 498.0L1297.5 446.0L1298.5 399.0L1296.5 331.0L1297.5 287.0L1296.0 278.5L244.0 277.5L238.5 279.0L237.5 314.0L231.5 796.0L228.0 800.5L223.0 802.5L211.0 802.5L208.0 801.5L203.5 795.0L204.5 771.0L202.5 765.0L200.5 697.0L191.5 285.0L190.0 279.5L176.0 278.5L165.5 280.0L138.5 925.0L135.5 931.0L129.0 934.5L119.0 935.5L107.0 932.5L103.5 928.0L102.5 901.0L105.5 443.0L108.5 252.0L107.5 199.0L106.0 197.5L67.0 197.5L63.0 195.5L60.5 192.0L60.5 169.0L68.0 161.5L121.0 133.5L294.5 133.0Z","surface":0.06},"computer":{"src":"assets/furniture-v1/computer.webp","width":1536,"height":1024,"box":[247,167,1209,741]},"clothes-rail":{"src":"assets/furniture-v2/clothes-rail.webp","width":814,"height":1931,"box":[59,113,702,1641],"fresh":true,"clipPath":"M112.5 113.0L117.0 112.5L127.0 115.5L127.5 118.0L133.5 122.0L135.5 128.0L140.0 129.5L682.0 129.5L685.5 122.0L692.0 115.5L706.0 112.5L715.0 115.5L718.5 119.0L718.0 119.5L717.5 120.0L719.0 119.5L719.5 122.0L722.5 123.0L723.5 128.0L735.0 132.5L742.5 143.0L743.5 154.0L740.5 162.0L734.0 168.5L724.5 172.0L724.5 1706.0L746.0 1707.5L758.5 1719.0L760.5 1725.0L759.5 1740.0L754.0 1748.5L745.0 1753.5L659.0 1753.5L648.0 1748.5L643.5 1743.0L640.5 1734.0L640.5 1726.0L642.5 1719.0L647.0 1712.5L649.0 1713.5L651.0 1709.5L659.0 1706.5L682.5 1706.0L682.5 1633.0L656.0 1631.5L137.0 1632.5L136.5 1705.0L138.0 1706.5L159.0 1706.5L167.0 1709.5L172.5 1714.0L177.5 1724.0L177.5 1735.0L173.5 1745.0L167.0 1750.5L159.0 1753.5L75.0 1753.5L68.0 1750.5L60.5 1742.0L58.5 1727.0L62.5 1716.0L74.0 1707.5L94.0 1706.5L95.5 1690.0L95.5 178.0L93.0 170.5L84.0 168.5L78.5 162.0L75.5 155.0L75.5 146.0L78.5 143.0L78.5 138.0L82.0 133.5L85.0 133.5L84.5 132.0L87.0 130.5L94.0 129.5L96.5 123.0L104.0 115.5L112.5 113.0Z M143.0 170.5L135.5 172.0L136.5 1527.0L139.5 1527.0L146.5 1508.0L152.0 1505.5L371.0 1505.5L349.5 1346.0L346.5 1310.0L351.0 1306.5L359.0 1304.5L404.0 1301.5L407.5 1262.0L415.5 1237.0L423.5 1223.0L433.0 1212.5L434.0 1212.5L435.0 1212.5L441.0 1205.5L447.0 1202.5L447.5 1203.0L448.0 1203.5L448.0 1201.5L451.0 1202.5L456.0 1198.5L467.0 1195.5L489.0 1195.5L503.0 1199.5L517.0 1207.5L535.5 1228.0L547.5 1256.0L551.5 1279.0L552.5 1301.0L554.0 1302.5L601.0 1304.5L611.0 1307.5L614.5 1312.0L590.5 1505.0L614.0 1505.5L623.0 1507.5L630.0 1505.5L670.0 1506.5L669.5 1508.0L673.5 1510.0L679.5 1527.0L682.0 1529.5L683.5 1492.0L682.5 172.0L681.0 170.5L143.0 170.5Z M472.0 1212.5L464.0 1214.5L453.0 1221.5L445.5 1229.0L438.5 1242.0L433.5 1256.0L430.5 1272.0L429.5 1301.0L526.0 1301.5L527.5 1300.0L526.5 1273.0L518.5 1241.0L511.5 1229.0L492.0 1214.5L485.0 1212.5L472.0 1212.5Z","bar":0.018},"scrapbook":{"src":"assets/furniture-v1/scrapbook.webp","width":2195,"height":716,"box":[89,121,2012,511],"baseline":0.81},"corkboard":{"src":"assets/furniture-v1/corkboard.webp","width":1430,"height":1100,"box":[85,152,1260,795]},"desktop-vignette":{"src":"assets/furniture-v1/desktop-vignette.webp","width":1433,"height":1098,"box":[78,229,1272,770]},"cabinet-vignette":{"src":"assets/furniture-v1/cabinet-vignette.webp","width":1122,"height":1402,"box":[87,340,965,907]},"floor-plant":{"src":"assets/furniture-v1/floor-plant.webp","width":724,"height":2172,"box":[15,16,694,2136]},"paper-basket":{"src":"assets/furniture-v1/paper-basket.webp","width":1049,"height":1499,"box":[79,292,891,1071]},"knit-pouf":{"src":"assets/furniture-v1/knit-pouf.webp","width":1635,"height":962,"box":[147,117,1341,764]},"wooden-stool":{"src":"assets/furniture-v1/wooden-stool.webp","width":1024,"height":1536,"box":[107,248,810,1045]},"pendant-shade":{"src":"assets/furniture-v1/pendant-shade.webp","width":1586,"height":992,"box":[178,139,1227,719]},"garments":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[96,36,1978,654]},"garment-0":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[96,43,354,478]},"garment-1":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[661,36,312,654]},"garment-2":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[1186,44,390,502]},"garment-3":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[1726,36,348,651]}};
+const FURNITURE_ART={"bookcase":{"src":"assets/furniture-v1/bookcase.webp","width":936,"height":1680,"box":[223,83,491,1515]},"calendar-base":{"src":"assets/furniture-v2/calendar-base.webp","width":916,"height":1717,"box":[71,129,774,1475],"fresh":true,"clipPath":"M449.5 129.0L466.0 128.5L481.0 135.5L490.5 146.0L495.5 161.0L492.5 182.0L488.5 188.0L473.5 201.0L473.5 287.0L475.0 288.5L653.0 287.5L653.5 265.0L655.5 258.0L662.0 250.5L673.0 248.5L679.0 250.5L686.5 259.0L689.0 287.5L805.0 288.5L815.0 290.5L824.0 294.5L832.5 301.0L838.5 309.0L843.5 322.0L844.5 504.0L839.5 511.0L842.5 1478.0L839.5 1495.0L832.5 1506.0L831.5 1540.0L824.5 1554.0L818.5 1559.0L814.5 1578.0L802.0 1594.5L796.0 1598.5L781.0 1603.5L135.0 1603.5L118.0 1597.5L106.5 1587.0L98.5 1570.0L98.5 1561.0L88.5 1549.0L84.5 1539.0L83.5 1506.0L76.5 1494.0L73.5 1480.0L77.5 514.0L71.5 505.0L70.5 497.0L72.5 322.0L78.5 307.0L86.0 299.5L86.5 300.0L87.0 300.5L89.0 296.5L105.0 289.5L227.0 287.5L228.5 261.0L231.5 255.0L235.5 253.0L235.0 251.5L239.0 249.5L243.0 250.5L243.0 248.5L253.0 250.5L258.5 256.0L262.5 270.0L262.5 287.0L268.0 288.5L442.0 287.5L443.5 286.0L442.5 201.0L433.0 194.5L425.5 186.0L421.5 177.0L420.5 161.0L423.5 150.0L429.5 141.0L439.0 132.5L449.5 129.0Z"},"drawer-cabinet":{"src":"assets/furniture-v2/drawer-cabinet.webp","width":1072,"height":1467,"box":[95,244,883,1095],"fresh":true,"clipPath":"M393.5 244.0L897.0 244.5L902.0 246.5L918.0 259.5L976.5 312.0L976.5 350.0L971.0 355.5L960.0 355.5L958.5 357.0L958.5 1252.0L953.0 1256.5L931.0 1256.5L929.5 1259.0L922.5 1330.0L921.5 1334.0L918.0 1337.5L891.0 1338.5L878.5 1328.0L860.0 1256.5L211.0 1256.5L193.5 1327.0L181.0 1338.5L154.0 1338.5L149.5 1334.0L141.5 1259.0L140.0 1256.5L117.0 1256.5L111.5 1250.0L111.5 357.0L110.0 355.5L97.0 354.5L94.5 351.0L94.5 312.0L133.0 276.5L142.0 270.5L165.0 249.5L174.0 244.5L393.5 244.0Z","fronts":[[0.1397,0.3671],[0.4,0.6247],[0.6566,0.8776]],"surface":0.045},"continuous-desk":{"src":"assets/furniture-v2/continuous-desk.webp","width":1536,"height":1024,"box":[61,133,1415,803],"fresh":true,"clipPath":"M294.5 133.0L1402.0 132.5L1418.0 134.5L1470.0 163.5L1474.5 168.0L1475.5 172.0L1474.5 193.0L1471.0 196.5L1464.0 198.5L1429.0 197.5L1427.5 199.0L1432.5 853.0L1430.5 930.0L1426.0 933.5L1421.0 934.5L1407.0 934.5L1398.5 930.0L1396.5 923.0L1375.5 401.0L1370.5 292.0L1368.0 279.5L1345.0 278.5L1343.5 281.0L1340.5 427.0L1337.5 486.0L1338.5 505.0L1336.5 516.0L1331.5 706.0L1331.5 757.0L1329.5 784.0L1330.5 793.0L1326.0 801.5L1309.0 802.5L1302.5 798.0L1301.5 794.0L1298.5 529.0L1299.5 498.0L1297.5 446.0L1298.5 399.0L1296.5 331.0L1297.5 287.0L1296.0 278.5L244.0 277.5L238.5 279.0L237.5 314.0L231.5 796.0L228.0 800.5L223.0 802.5L211.0 802.5L208.0 801.5L203.5 795.0L204.5 771.0L202.5 765.0L200.5 697.0L191.5 285.0L190.0 279.5L176.0 278.5L165.5 280.0L138.5 925.0L135.5 931.0L129.0 934.5L119.0 935.5L107.0 932.5L103.5 928.0L102.5 901.0L105.5 443.0L108.5 252.0L107.5 199.0L106.0 197.5L67.0 197.5L63.0 195.5L60.5 192.0L60.5 169.0L68.0 161.5L121.0 133.5L294.5 133.0Z","surface":0.06},"computer":{"src":"assets/furniture-v1/computer.webp","width":1536,"height":1024,"box":[247,167,1209,741]},"clothes-rail":{"src":"assets/furniture-v2/clothes-rail.webp","width":814,"height":1931,"box":[59,113,702,1641],"fresh":true,"clipPath":"M112.5 113.0L117.0 112.5L127.0 115.5L127.5 118.0L133.5 122.0L135.5 128.0L140.0 129.5L682.0 129.5L685.5 122.0L692.0 115.5L706.0 112.5L715.0 115.5L718.5 119.0L718.0 119.5L717.5 120.0L719.0 119.5L719.5 122.0L722.5 123.0L723.5 128.0L735.0 132.5L742.5 143.0L743.5 154.0L740.5 162.0L734.0 168.5L724.5 172.0L724.5 1706.0L746.0 1707.5L758.5 1719.0L760.5 1725.0L759.5 1740.0L754.0 1748.5L745.0 1753.5L659.0 1753.5L648.0 1748.5L643.5 1743.0L640.5 1734.0L640.5 1726.0L642.5 1719.0L647.0 1712.5L649.0 1713.5L651.0 1709.5L659.0 1706.5L682.5 1706.0L682.5 1633.0L656.0 1631.5L137.0 1632.5L136.5 1705.0L138.0 1706.5L159.0 1706.5L167.0 1709.5L172.5 1714.0L177.5 1724.0L177.5 1735.0L173.5 1745.0L167.0 1750.5L159.0 1753.5L75.0 1753.5L68.0 1750.5L60.5 1742.0L58.5 1727.0L62.5 1716.0L74.0 1707.5L94.0 1706.5L95.5 1690.0L95.5 178.0L93.0 170.5L84.0 168.5L78.5 162.0L75.5 155.0L75.5 146.0L78.5 143.0L78.5 138.0L82.0 133.5L85.0 133.5L84.5 132.0L87.0 130.5L94.0 129.5L96.5 123.0L104.0 115.5L112.5 113.0Z M143.0 170.5L135.5 172.0L136.5 1527.0L139.5 1527.0L146.5 1508.0L152.0 1505.5L371.0 1505.5L349.5 1346.0L346.5 1310.0L351.0 1306.5L359.0 1304.5L404.0 1301.5L407.5 1262.0L415.5 1237.0L423.5 1223.0L433.0 1212.5L434.0 1212.5L435.0 1212.5L441.0 1205.5L447.0 1202.5L447.5 1203.0L448.0 1203.5L448.0 1201.5L451.0 1202.5L456.0 1198.5L467.0 1195.5L489.0 1195.5L503.0 1199.5L517.0 1207.5L535.5 1228.0L547.5 1256.0L551.5 1279.0L552.5 1301.0L554.0 1302.5L601.0 1304.5L611.0 1307.5L614.5 1312.0L590.5 1505.0L614.0 1505.5L623.0 1507.5L630.0 1505.5L670.0 1506.5L669.5 1508.0L673.5 1510.0L679.5 1527.0L682.0 1529.5L683.5 1492.0L682.5 172.0L681.0 170.5L143.0 170.5Z M472.0 1212.5L464.0 1214.5L453.0 1221.5L445.5 1229.0L438.5 1242.0L433.5 1256.0L430.5 1272.0L429.5 1301.0L526.0 1301.5L527.5 1300.0L526.5 1273.0L518.5 1241.0L511.5 1229.0L492.0 1214.5L485.0 1212.5L472.0 1212.5Z","bar":0.018},"scrapbook":{"src":"assets/furniture-v1/scrapbook.webp","width":2195,"height":716,"box":[89,121,2012,511],"baseline":0.81},"corkboard":{"src":"assets/furniture-v1/corkboard.webp","width":1430,"height":1100,"box":[85,152,1260,795]},"desktop-vignette":{"src":"assets/furniture-v1/desktop-vignette.webp","width":1433,"height":1098,"box":[78,229,1272,770]},"cabinet-vignette":{"src":"assets/furniture-v1/cabinet-vignette.webp","width":1122,"height":1402,"box":[87,340,965,907]},"floor-plant":{"src":"assets/furniture-v1/floor-plant.webp","width":724,"height":2172,"box":[15,16,694,2136]},"paper-basket":{"src":"assets/furniture-v1/paper-basket.webp","width":1049,"height":1499,"box":[79,292,891,1071]},"knit-pouf":{"src":"assets/furniture-v1/knit-pouf.webp","width":1635,"height":962,"box":[147,117,1341,764]},"wooden-stool":{"src":"assets/furniture-v1/wooden-stool.webp","width":1024,"height":1536,"box":[107,248,810,1045]},"pendant-shade":{"src":"assets/furniture-v1/pendant-shade.webp","width":1586,"height":992,"box":[178,139,1227,719]},"garments":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[96,36,1978,654]},"garment-0":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[96,43,354,478]},"garment-1":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[661,36,312,654]},"garment-2":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[1186,44,390,502]},"garment-3":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[1726,36,348,651]},"window-frame":{"src":"assets/room-v3/window-frame.webp","width":1024,"height":1536,"fresh":true,"box":[28,100,969,1330],"clipPath":"M77.5 100.0L947.0 99.5L956.5 106.0L958.5 112.0L958.5 139.0L955.5 146.0L951.5 150.0L951.5 1331.0L963.0 1335.5L987.5 1361.0L995.5 1375.0L996.5 1411.0L993.5 1421.0L989.0 1425.5L981.0 1428.5L915.0 1429.5L85.0 1429.5L43.0 1428.5L31.5 1423.0L27.5 1415.0L27.5 1377.0L29.5 1371.0L34.5 1363.0L61.0 1335.5L71.5 1331.0L72.5 1310.0L72.5 162.0L71.5 149.0L65.5 141.0L64.5 117.0L67.5 105.0L77.5 100.0Z M148.0 172.5L140.5 174.0L140.5 721.0L142.0 722.5L491.0 722.5L492.5 720.0L491.5 174.0L148.0 172.5Z M533.0 173.5L531.5 185.0L532.5 721.0L534.0 722.5L883.0 721.5L884.5 700.0L883.5 174.0L533.0 173.5Z M142.0 766.5L140.5 768.0L140.5 1313.0L142.0 1314.5L491.0 1314.5L492.5 1312.0L492.5 769.0L490.0 766.5L142.0 766.5Z M533.0 766.5L531.5 768.0L531.5 1312.0L534.0 1314.5L882.0 1314.5L883.5 1313.0L884.5 1295.0L883.5 768.0L882.0 766.5L533.0 766.5Z","glass":[141,173,744,1142],"untoned":true},"curtain":{"src":"assets/room-v3/curtain.webp","width":734,"height":2141,"fresh":true,"box":[225,22,283,2103],"clipPath":"M262.5 22.0L271.0 22.5L277.5 28.0L280.5 35.0L279.0 50.5L319.0 50.5L317.5 45.0L318.5 31.0L325.0 22.5L332.0 21.5L337.0 23.5L342.5 31.0L343.0 49.5L382.0 51.5L383.5 50.0L381.5 46.0L381.5 33.0L388.0 23.5L396.0 21.5L404.5 28.0L406.5 34.0L406.0 50.5L446.0 51.5L447.5 50.0L445.5 46.0L446.5 32.0L452.0 23.5L461.0 21.5L469.5 31.0L469.5 50.0L477.5 52.0L483.5 275.0L489.5 679.0L496.5 1618.0L507.5 2086.0L499.0 2091.5L480.0 2096.5L477.5 2099.0L476.5 2106.0L472.0 2110.5L462.0 2115.5L452.0 2117.5L429.0 2116.5L418.0 2112.5L404.0 2103.5L384.0 2101.5L375.0 2104.5L372.5 2107.0L372.5 2110.0L367.0 2115.5L353.0 2121.5L336.0 2124.5L304.0 2123.5L282.0 2117.5L273.0 2112.5L266.5 2106.0L266.5 2101.0L262.0 2097.5L235.0 2093.5L224.5 2087.0L231.5 1868.0L238.5 1451.0L246.5 283.0L249.5 62.0L250.5 53.0L252.5 51.0L249.5 43.0L249.5 36.0L254.5 26.0L262.5 22.0Z M263.0 27.5L257.5 32.0L255.5 42.0L260.0 49.5L270.0 49.5L273.5 44.0L274.5 38.0L269.0 28.5L263.0 27.5Z M329.0 27.5L324.5 32.0L323.5 44.0L326.0 48.5L334.0 48.5L336.5 44.0L336.5 35.0L334.5 31.0L329.0 27.5Z M394.0 27.5L389.5 30.0L386.5 38.0L387.5 45.0L390.0 48.5L398.0 48.5L400.5 44.0L400.5 35.0L394.0 27.5Z M457.0 27.5L453.5 30.0L451.5 36.0L451.5 44.0L455.0 49.5L461.0 48.5L464.5 43.0L464.5 35.0L462.5 31.0L457.0 27.5Z","untoned":true},"rug":{"src":"assets/room-v3/rug.webp","width":2172,"height":724,"fresh":true,"box":[56,202,2060,342],"clipPath":"M178.5 202.0L2001.0 201.5L2015.0 206.5L2026.0 216.5L2039.0 216.5L2056.0 212.5L2062.5 223.0L2061.5 235.0L2065.5 242.0L2064.5 251.0L2067.5 254.0L2066.5 263.0L2070.5 270.0L2067.5 277.0L2072.5 284.0L2072.5 291.0L2069.5 294.0L2074.5 299.0L2074.5 312.0L2078.5 322.0L2077.5 327.0L2080.5 332.0L2080.5 340.0L2083.5 343.0L2082.5 352.0L2086.5 358.0L2085.5 367.0L2087.5 370.0L2087.5 378.0L2090.5 382.0L2089.5 390.0L2093.5 402.0L2092.5 408.0L2095.5 412.0L2095.5 422.0L2098.5 425.0L2098.5 442.0L2103.5 446.0L2104.5 451.0L2103.5 461.0L2106.5 463.0L2105.5 476.0L2109.5 481.0L2108.5 491.0L2112.5 496.0L2110.5 507.0L2114.5 512.0L2115.5 527.0L2113.0 530.5L2108.0 530.5L2092.0 525.5L2079.0 525.5L2075.5 532.0L2067.0 539.5L2051.0 543.5L119.0 543.5L104.0 538.5L94.0 525.5L84.0 524.5L60.0 530.5L56.5 527.0L57.5 525.0L55.5 521.0L58.5 518.0L57.5 512.0L62.5 507.0L60.5 504.0L60.5 494.0L64.5 491.0L63.5 478.0L67.5 476.0L65.5 468.0L66.5 463.0L69.5 460.0L68.5 451.0L70.5 449.0L70.5 444.0L75.5 441.0L73.5 438.0L73.5 428.0L74.5 424.0L77.5 422.0L76.5 412.0L80.5 408.0L79.5 402.0L83.5 393.0L82.5 384.0L85.5 377.0L84.5 373.0L87.5 369.0L88.5 355.0L91.5 352.0L90.5 342.0L94.5 339.0L93.5 332.0L98.5 326.0L96.5 322.0L97.5 315.0L101.5 310.0L100.5 298.0L104.5 295.0L104.5 280.0L108.5 278.0L106.5 274.0L106.5 266.0L110.5 262.0L108.5 255.0L112.5 250.0L110.5 243.0L112.5 237.0L115.5 235.0L113.5 230.0L115.5 220.0L117.5 216.0L123.0 212.5L140.0 216.5L154.0 216.5L164.0 206.5L178.5 202.0Z"},"chair":{"src":"assets/room-v3/chair.webp","width":1064,"height":1479,"fresh":true,"box":[94,72,876,1333],"clipPath":"M480.5 72.0L504.0 73.5L525.0 71.5L552.0 73.5L597.0 72.5L605.0 74.5L626.0 72.5L651.0 74.5L657.0 76.5L675.0 75.5L700.0 79.5L727.0 80.5L747.0 84.5L753.0 87.5L763.0 87.5L782.0 91.5L802.0 99.5L827.0 106.5L843.0 114.5L866.0 131.5L882.5 151.0L887.5 163.0L897.5 179.0L903.5 195.0L912.5 242.0L913.5 299.0L908.5 341.0L901.5 366.0L883.5 399.0L867.0 416.5L857.0 423.5L835.0 433.5L816.0 439.5L798.0 441.5L797.5 451.0L809.5 551.0L849.0 564.5L882.0 580.5L902.0 594.5L928.5 620.0L940.5 637.0L952.5 662.0L961.5 691.0L966.5 718.0L969.5 765.0L968.5 804.0L963.5 841.0L954.5 869.0L941.5 892.0L922.0 913.5L903.0 927.5L884.0 935.5L867.5 945.0L942.5 1380.0L942.5 1393.0L940.5 1397.0L933.0 1402.5L926.0 1404.5L910.0 1404.5L899.0 1399.5L893.5 1392.0L842.5 1195.0L793.5 994.0L785.0 966.5L776.0 968.5L774.5 971.0L803.5 1190.0L803.5 1195.0L800.5 1202.0L794.0 1206.5L785.0 1208.5L772.0 1206.5L766.0 1203.5L761.5 1197.0L721.5 987.0L718.0 977.5L696.0 980.5L682.0 979.5L674.0 982.5L650.0 985.5L623.0 984.5L602.0 988.5L571.0 988.5L562.0 986.5L545.0 989.5L515.0 989.5L501.0 986.5L492.0 988.5L459.0 988.5L443.0 985.5L406.0 985.5L382.0 980.5L346.0 979.5L303.5 1194.0L300.5 1201.0L295.0 1205.5L283.0 1208.5L271.0 1206.5L262.5 1200.0L260.5 1193.0L290.5 972.0L289.0 969.5L279.0 967.5L170.5 1393.0L165.0 1399.5L153.0 1404.5L134.0 1403.5L128.0 1400.5L121.5 1393.0L123.5 1369.0L176.5 1070.0L178.5 1051.0L196.5 953.0L196.5 945.0L180.0 935.5L165.0 930.5L151.0 921.5L126.5 898.0L112.5 876.0L101.5 846.0L95.5 811.0L93.5 773.0L96.5 720.0L102.5 689.0L111.5 662.0L119.5 645.0L134.5 623.0L163.0 595.5L182.0 582.5L221.0 563.5L255.5 551.0L267.5 449.0L267.0 441.5L237.0 436.5L217.0 428.5L197.0 416.5L181.5 400.0L164.5 371.0L154.5 336.0L150.5 292.0L151.5 245.0L159.5 200.0L170.5 172.0L176.5 164.0L182.5 150.0L189.5 141.0L199.0 131.5L217.0 118.5L244.0 104.5L259.0 101.5L287.0 91.5L308.0 89.5L325.0 83.5L338.0 81.5L361.0 80.5L381.0 76.5L410.0 76.5L427.0 73.5L459.0 74.5L480.5 72.0Z M504.0 432.5L481.0 434.5L459.0 433.5L430.0 436.5L413.0 435.5L389.0 438.5L365.0 438.5L347.0 441.5L326.0 441.5L319.5 485.0L315.0 537.5L383.0 527.5L483.0 520.5L603.0 521.5L673.0 526.5L744.0 536.5L750.5 536.0L742.5 460.0L739.0 441.5L711.0 440.5L698.0 437.5L677.0 438.5L653.0 435.5L640.0 436.5L608.0 433.5L587.0 434.5L563.0 432.5L504.0 432.5Z"},"view-day":{"src":"assets/room-v3/view-day.webp","width":1024,"height":1536,"fresh":true,"box":[0,0,1024,1536],"untoned":true},"view-dusk":{"src":"assets/room-v3/view-dusk.webp","width":1024,"height":1536,"fresh":true,"box":[0,0,1024,1536],"untoned":true},"view-night":{"src":"assets/room-v3/view-night.webp","width":1024,"height":1536,"fresh":true,"box":[0,0,1024,1536],"untoned":true}};
 function drawBoardNotes(){
   let s='';
   const spots=[[203,196,38,46,-6],[249,200,38,46,5],[293,195,32,42,-3]],tapes=['#CFDCC9','#EED3CB','#EFE2BF'];
@@ -1261,7 +1262,13 @@ function furnitureArt(name,x,y,w,h,id,anchor='bottom'){
   // Uniform scale preserves circles, sleeves and furniture proportions at every size.
   return '<svg class="furniture-viewport" data-art="'+name+'" x="'+f(p.x)+'" y="'+f(p.y)+'" width="'+f(p.w)+'" height="'+f(p.h)+'" viewBox="'+a.box.join(' ')+'" preserveAspectRatio="xMidYMid meet" overflow="hidden" pointer-events="none" aria-hidden="true">'+
     (clip?'<defs><clipPath id="'+clipId+'" clipPathUnits="userSpaceOnUse">'+(a.clipPath?'<path d="'+a.clipPath+'" clip-rule="evenodd"/>':'<rect x="113" y="344" width="798" height="1000" rx="38"/><circle cx="512" cy="211" r="37"/><rect x="499" y="237" width="26" height="108"/><rect x="267" y="308" width="52" height="62" rx="18"/><rect x="711" y="308" width="52" height="62" rx="18"/>')+'</clipPath></defs>':'')+
-    '<g filter="url(#furniture-'+(a.fresh?'drawn-':'pastel-')+id+')"><image class="furniture-art" href="'+a.src+'" x="0" y="0" width="'+a.width+'" height="'+a.height+'"'+(clip?' clip-path="url(#'+clipId+')"':'')+'/></g></svg>';
+    '<g'+(a.untoned?'':' filter="url(#furniture-'+(a.fresh?'drawn-':'pastel-')+id+')"')+'><image class="furniture-art" href="'+a.src+'" x="0" y="0" width="'+a.width+'" height="'+a.height+'"'+(clip?' clip-path="url(#'+clipId+')"':'')+'/></g></svg>';
+}
+function corkPanel(x,y,w,height,id){
+  const a=FURNITURE_ART.corkboard,k=w/a.box[2],edge=160,eh=edge*k;
+  // The corners keep their scale; only the straight middle of the cork panel extends.
+  const strips=[[0,edge,y,eh],[edge,a.box[3]-edge*2,y+eh-.1,height-eh*2+.2],[a.box[3]-edge,edge,y+height-eh,eh]];
+  return '<g class="furniture-panel" data-panel="corkboard" filter="url(#furniture-pastel-'+id+')">'+strips.map(([sy,sh,dy,dh])=>'<svg x="'+x+'" y="'+dy+'" width="'+w+'" height="'+dh+'" viewBox="'+[a.box[0],a.box[1]+sy,a.box[2],sh].join(' ')+'" preserveAspectRatio="none" overflow="hidden"><image href="'+a.src+'" width="'+a.width+'" height="'+a.height+'"/></svg>').join('')+'</g>';
 }
 function deskLayout(offset=0){return furnitureLayout('continuous-desk',220-offset,444,290,160)}
 function deskSurface(){const p=deskLayout();return p.y+p.h*(FURNITURE_ART['continuous-desk'].surface??.06)}
@@ -1276,8 +1283,8 @@ function drawHomeImages(c,P,L){
   if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa*.6+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
   s+=cozyWindow('a',P,L);
   s+='<path d="M272 -1600V119" stroke="#B9A58C" stroke-width="1.1"/>'+art('pendant-shade',246,118,52,35,'top');
-  s+=furn('board','코르크보드')+'<rect class="tap" x="180" y="168" width="168" height="144"/>';
-  s+=art('corkboard',186,176,156,124,'top')+drawBoardNotes()+pill(264,294,'코르크보드')+'</g>';
+  s+=furn('board','코르크보드')+'<rect class="tap" x="180" y="168" width="168" height="162"/>';
+  s+=corkPanel(186,176,156,114,'a')+drawBoardNotes()+pill(264,312,'코르크보드')+'</g>';
   s+=cozyRug('a',0);
   if(L.floor)s+='<g fill="'+L.floor+'" opacity="'+L.fa+'"><path d="M92 628H140L162 686H114Z"/><path d="M150 628H170L192 686H172Z"/></g>';
   s+=continuousDesk(0);
@@ -1296,13 +1303,19 @@ function drawHomeImages(c,P,L){
   s+=art('scrapbook',47,cabinetSurface-26,88,26)+pill(92,cabinetSurface-48,'스크랩북')+'</g>';
   s+=art('cabinet-vignette',133,cabinetSurface-58,51,58);
   s+=art('desktop-vignette',225,surface-97,130,97);
-  s+=art('knit-pouf',220,568,52,36);
+  s+=art('chair',215,484,67,120);
   s+=furn('trash','쓰레기통')+'<rect class="tap" x="300" y="506" width="60" height="134"/>';
-  const basket=furnitureLayout('paper-basket',303,539,50,65),mouth=basket.y+basket.h*.1;
+  const basket=furnitureLayout('paper-basket',303,539,50,65),a=FURNITURE_ART['paper-basket'],k=basket.w/a.box[2];
+  const mouthX=basket.x+(524-a.box[0])*k,mouthY=basket.y+(392-a.box[1])*k,rx=389*k,ry=73*k;
   s+=art('paper-basket',303,539,50,65);
-  if(c.trash>=1)s+=crumple(319,mouth,7,1);
-  if(c.trash>=2)s+=crumple(335,mouth,8,2);
-  if(c.trash)s+='<path d="M305 '+f(mouth+4)+'Q328 '+f(mouth+9)+' 351 '+f(mouth+4)+'" stroke="#D8C2A4" stroke-width="2.3" stroke-linecap="round" fill="none"/>';
+  if(c.trash)s+='<g class="basket-contents">';
+  if(c.trash>=1)s+=crumple(mouthX-6.5,mouthY+1.8,6,1);
+  if(c.trash>=2)s+=crumple(mouthX+6.5,mouthY+1.8,6.3,2);
+  if(c.trash){
+    s+='</g>';
+    const front='M'+f(basket.x)+' '+f(mouthY)+'H'+f(mouthX-rx)+'Q'+f(mouthX)+' '+f(mouthY+ry*2)+' '+f(mouthX+rx)+' '+f(mouthY)+'H'+f(basket.x+basket.w)+'V604H'+f(basket.x)+'Z';
+    s+='<defs><clipPath id="basket-front-a"><path d="'+front+'"/></clipPath></defs><g class="basket-front" clip-path="url(#basket-front-a)">'+art('paper-basket',303,539,50,65)+'</g>';
+  }
   s+=pill(322,618,'쓰레기통')+'</g>';
   s+=art('floor-plant',-14,366,78,250);
   return s;
@@ -1336,7 +1349,7 @@ function drawStudy(c,P,L){
   const art=(name,x,y,w,h,anchor)=>furnitureArt(name,x,y,w,h,'b',anchor),surface=deskSurface();
   let s=cozyRoomBase('b');
   if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa*.55+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
-  s+='<g transform="translate(-8 0)">'+cozyWindow('b',P,L)+'</g>'+cozyRug('b',360);
+  s+='<g transform="translate(-31 0)">'+cozyWindow('b',P,L)+'</g>'+cozyRug('b',360);
   if(L.floor)s+='<path d="M4 628H42L64 686H26ZM52 628H72L94 686H74Z" fill="'+L.floor+'" opacity="'+L.fa*.55+'" pointer-events="none"/>';
   s+=continuousDesk(360);
 
@@ -2394,6 +2407,7 @@ document.addEventListener('click',e=>{
     case 'd-trash':{if(!dd)break;const id=dd.id;closeD();if(id&&get(id)){trashDoc(id);toast('쓰레기통에 버렸어요','되돌리기',()=>restore(id))}break}
     case 'settings-close':hide('#settings');break;
     case 'skin':setSkin(a.dataset.skin,true);break;
+    case 'room-time':setRoomTime(a.dataset.time);break;
     case 'logout':flushAll();hide('#search');Promise.allSettled([...chains.values()]).then(()=>sb&&sb.auth.signOut());break;
     case 'auth-toggle':setSignup(!signup);authMsg('');break;
     case 'search-close':hide('#search');break;

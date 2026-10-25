@@ -15,7 +15,9 @@ const attrs = tag => Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)]
 const near = (a, b, label, tolerance = .15) => assert(Math.abs(a - b) <= tolerance, `${label}: ${a} vs ${b}`);
 const output = [];
 
-for (const hour of [10, 18, 23]) for (const skin of ['beige', 'winter']) for (const populated of [false, true]) {
+const times = [{hour:10,time:'auto',expected:'day'},{hour:18,time:'auto',expected:'dusk'},{hour:23,time:'auto',expected:'night'},
+  {hour:23,time:'day',expected:'day'},{hour:10,time:'dusk',expected:'dusk'},{hour:10,time:'night',expected:'night'}];
+for (const {hour,time,expected} of times) for (const skin of ['beige', 'winter']) for (const populated of [false, true]) {
   const rooms = {};
   const docs = populated ? ['drawer', 'stack', 'board', 'wish', 'wish', 'wish', 'wish', 'trash'].map((place, i) => ({
     id: `test-${i}`, place, title: '<따뜻한 & 생각>', shelf: 1, blocks: [], photos: [], created: 1000
@@ -25,7 +27,7 @@ for (const hour of [10, 18, 23]) for (const skin of ['beige', 'winter']) for (co
     getHours() { return hour; }
   }
   const context = {
-    Date: Clock, Math, Set, skin, NOTE_COL: ['#F3E4C0', '#DDE6D8', '#F1DCD5', '#DFE5EA'],
+    Date: Clock, Math, Set, skin, roomTime:time, NOTE_COL: ['#F3E4C0', '#DDE6D8', '#F1DCD5', '#DFE5EA'],
     POS: { 1: '윗칸', 2: '가운데칸', 3: '아랫칸' }, wcats: [],
     esc: s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
     hashStr: () => 0, srcOf: () => '', shelfName: k => '생각 ' + k, all: () => docs,
@@ -68,9 +70,13 @@ for (const hour of [10, 18, 23]) for (const skin of ['beige', 'winter']) for (co
   near(book.y + book.h * manifest.scrapbook.baseline, cabinet.y + cabinet.h * manifest['drawer-cabinet'].surface, 'book body rests on cabinet');
   const garments = Object.keys(scenes['#room2']).filter(n => n.startsWith('garment-'));
   assert.equal(garments.length, populated ? 4 : 0, 'clothes follow live wish count');
+  assert(scenes['#room'].chair, 'the pouf has been replaced by a chair');
+  for (const room of ['#room','#room2']) assert(rooms[room].includes('data-period="'+expected+'"'), 'manual time overrides device clock');
+  assert.equal(rooms['#room'].includes('class="basket-front"'),populated,'basket front covers paper only when occupied');
+  if(populated)assert(rooms['#room'].indexOf('class="basket-front"')>rooms['#room'].indexOf('class="basket-contents"'),'paper is behind the rim');
   for (const action of ['data-go="dday"', 'data-go="wish"', 'data-soon="pc"', 'data-soon="shelf"', 'aria-label="옥탑방으로 올라가기"']) {
     assert(rooms['#room2'].includes(action), action);
   }
 }
 if (process.env.ROOM_ART_OUTPUT) fs.writeFileSync(process.env.ROOM_ART_OUTPUT, JSON.stringify(output));
-console.log('Passed 12 scene states: uniform image proportions, tabletop contact, continuous desk, native asset references and memo actions.');
+console.log('Passed 24 scene states: automatic/manual time, image proportions, surface contact, basket layering and memo actions.');
