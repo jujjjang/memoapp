@@ -90,7 +90,8 @@ function metas(html: string) {
     const tag = m[0];
     const key = (tag.match(/\b(?:property|name|itemprop)\s*=\s*["']([^"']+)["']/i) || [])[1];
     const cm = tag.match(/\bcontent\s*=\s*"([^"]*)"/i) || tag.match(/\bcontent\s*=\s*'([^']*)'/i);
-    if (key && cm && !(key.toLowerCase() in out)) out[key.toLowerCase()] = unent(cm[1]).trim();
+    const k = key ? key.toLowerCase().replace(/^meta-/, "") : "";
+    if (k && cm && !(k in out)) out[k] = unent(cm[1]).trim();
   }
   return out;
 }
@@ -162,8 +163,20 @@ function fromNext(html: string) {
 const SITES = /(무신사|musinsa|29cm|w\s?컨셉|wconcept|지그재그|zigzag|에이블리|ably|쿠팡|coupang|네이버|naver|스마트스토어|ssg|11번가|g마켓|gmarket|옥션|auction|올리브영|oliveyoung|kream|크림|오늘의집|ohou|컬리|kurly|카카오|kakao)/i;
 function cleanTitle(t: string, site: string) {
   t = unent(t).replace(/\s+/g, " ").trim();
-  const parts = t.split(/\s+[|｜\-–—:]\s+/).filter((p) => p && !SITES.test(p) && !(site && p.toLowerCase() === site.toLowerCase()) && !/^(사이즈\s*&?\s*후기|후기|리뷰|상품\s*상세|공식\s*(온라인\s*)?(스토어|몰))$/.test(p));
+  const isShop = (p: string) => p.length <= 14 && SITES.test(p) && p.replace(SITES, "").replace(/[\s()\[\]·.]|스토어|store|shop|몰|공식|온라인/gi, "").length <= 2;
+  const parts = t.split(/\s+[|｜\-–—:]\s+/).filter((p) => p && !isShop(p) && !(site && p.toLowerCase() === site.toLowerCase()) && !/^(사이즈\s*&?\s*후기|후기|리뷰|상품\s*상세|공식\s*(온라인\s*)?(스토어|몰))$/.test(p));
   return (parts.length ? parts.join(" ") : t).slice(0, 80);
+}
+
+function sniff(b: Uint8Array) {
+  const at = (i: number, s: string) => s.split("").every((c, k) => b[i + k] === c.charCodeAt(0));
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b[0] === 0x89 && at(1, "PNG")) return "image/png";
+  if (at(0, "GIF8")) return "image/gif";
+  if (at(0, "RIFF") && at(8, "WEBP")) return "image/webp";
+  if (at(4, "ftypavif") || at(4, "ftypavis")) return "image/avif";
+  if (at(4, "ftypheic") || at(4, "ftypmif1")) return "image/heic";
+  return "";
 }
 
 function b64(bytes: Uint8Array) {
@@ -182,7 +195,7 @@ async function signedIn(req: Request) {
   } catch { return false; }
 }
 
-type PageInfo = { title: string; price: number | null; currency: string; image: string | null; imageUrl: string; site: string; url: string };
+type PageInfo = { title: string; price: number | null; currency: string; image: string | null; imageUrl: string; imageError?: string; site: string; url: string };
 
 async function readPage(url: string, withImage: boolean): Promise<PageInfo> {
   const page = await grab(url, "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8", 2_500_000);
@@ -207,19 +220,32 @@ async function readPage(url: string, withImage: boolean): Promise<PageInfo> {
     if (m) { price = +m[1].replace(/,/g, ""); currency = "KRW"; }
   }
 
-  let imageUrl = meta["og:image"] || meta["og:image:url"] || meta["twitter:image"] || ld.image || "";
-  if (imageUrl) {
-    try { imageUrl = new URL(imageUrl.replace(/^\/\//, "https://"), page.url).href; } catch { imageUrl = ""; }
-  }
-  let image: string | null = null;
-  if (imageUrl && withImage) {
+  const cands: string[] = [];
+  for (const c of [meta["og:image:secure_url"], meta["og:image"], meta["og:image:url"], meta["twitter:image"], meta["twitter:image:src"], ld.image]) {
+    if (!c) continue;
     try {
-      const img = await grab(imageUrl, "image/avif,image/webp,image/*;q=0.9,*/*;q=0.5", 6_000_000, page.url);
-      const t = (img.type.split(";")[0] || "").trim();
-      if (/^image\//.test(t) && img.buf.length > 200 && img.buf.length < 6_000_000) image = "data:" + t + ";base64," + b64(img.buf);
-    } catch { /* keep just the address */ }
+      const abs = new URL(c.replace(/^\/\//, "https://"), page.url).href;
+      if (!cands.includes(abs)) cands.push(abs);
+    } catch { /* not an address */ }
   }
-  return { title, price, currency, image, imageUrl, site, url: page.url };
+  const imageUrl = cands[0] || "";
+  let image: string | null = null, imageError = "";
+  if (withImage) {
+    tries: for (const c of cands.slice(0, 3)) {
+      for (const ref of [page.url, undefined]) {
+        try {
+          const img = await grab(c, "image/jpeg,image/png,image/webp,image/*;q=0.8,*/*;q=0.5", 6_000_000, ref);
+          const head = (img.type.split(";")[0] || "").trim().toLowerCase();
+          const t = sniff(img.buf) || (/^image\//.test(head) ? head : "");
+          if (t && img.buf.length > 200 && img.buf.length < 6_000_000) { image = "data:" + t + ";base64," + b64(img.buf); break tries; }
+          imageError = "type " + (head || "?") + " " + new URL(c).hostname;
+        } catch (e) {
+          imageError = String((e as Error).message || e) + " " + new URL(c).hostname;
+        }
+      }
+    }
+  }
+  return { title, price, currency, image, imageUrl, ...(image || !imageError ? {} : { imageError }), site, url: page.url };
 }
 
 const won = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";

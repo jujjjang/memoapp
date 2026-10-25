@@ -914,7 +914,7 @@ async function fillPending(){
     for(const d of all().filter(x=>x.place==='wish'&&x.needsPhoto&&x.link).slice(0,4)){
       let data=null;try{const r=await sb.functions.invoke('link-preview',{body:{url:d.link}});data=r.error?null:r.data}catch(e){}
       let ref=null;const now0=get(d.id);
-      if(now0&&!(now0.photos||[]).length&&data&&data.image){try{const blob=await (await fetch(data.image)).blob();ref=await uploadOne(new File([blob],'link.jpg',{type:blob.type}))}catch(e){}}
+      if(now0&&!(now0.photos||[]).length&&data&&(data.image||data.imageUrl))ref=await photoFromPreview(data);
       const n=get(d.id);if(!n){if(ref)dropAsset(ref);continue}
       const o={...n};delete o.needsPhoto;
       if(ref&&!(o.photos||[]).length)o.photos=[ref];else if(ref)dropAsset(ref);
@@ -956,7 +956,7 @@ function saveNames(n){for(const k of [1,2,3])names[k]=String(n[k]||'').trim()||D
 const BLANK='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const urls=new Map(),badUrl=new Set(),wantUrl=new Set();let wantT=0;
 function srcOf(p){
-  p=String(p);if(p.startsWith('data:'))return p;
+  p=String(p);if(p.startsWith('data:')||/^https?:/.test(p))return p;
   const u=urls.get(p);if(u&&u.exp>now())return u.url;
   if(mode==='cloud'&&!badUrl.has(p)){wantUrl.add(p);if(!wantT)wantT=setTimeout(fetchUrls,0)}
   return u?u.url:BLANK;
@@ -996,7 +996,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='19';
+const APP_VERSION='20';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1072,7 +1072,7 @@ function restore(id){
   put({...d,place,shelf,parent,...clear});
   ks.forEach(k=>put({...k,place,shelf,...clear}));
 }
-function dropAsset(p){p=String(p||'');if(mode==='cloud'&&p&&!p.startsWith('data:'))sb.storage.from('photos').remove([p]).then(()=>{},()=>{})}
+function dropAsset(p){p=String(p||'');if(mode==='cloud'&&p&&!p.startsWith('data:')&&!/^https?:/.test(p))sb.storage.from('photos').remove([p]).then(()=>{},()=>{})}
 function purge(id){
   const d=get(id);if(!d)return;
   const ks=all().filter(k=>k.parent===id&&k.place==='trash');
@@ -1662,7 +1662,7 @@ const fmtPrice=v=>{v=String(v||'').trim();if(/^[\d,]+$/.test(v)){const n=+v.repl
 function wishCard(d){
   const p=(d.photos||[])[0],hs=hashStr(d.id),r=((hs%5)-2)*.8;
   return '<button class="wcard" style="--r:'+r+'deg" data-act="wish-edit" data-id="'+d.id+'"><span class="w-hook" aria-hidden="true"></span>'+
-    '<span class="w-img">'+(p?'<img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" loading="lazy">':'<span class="w-none">'+esc(Array.from(d.title||'·')[0])+'</span>')+(d.bought?'<span class="w-stamp">샀어요</span>':'')+'</span>'+
+    '<span class="w-img">'+(p?'<img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'<span class="w-none">'+esc(Array.from(d.title||'·')[0])+'</span>')+(d.bought?'<span class="w-stamp">샀어요</span>':'')+'</span>'+
     '<span class="w-name">'+esc(d.title||'이름 없음')+'</span>'+(d.price?'<span class="w-price">'+esc(d.price)+'</span>':'')+'</button>';
 }
 function wishHTML(){
@@ -1685,7 +1685,7 @@ function wLinkBtn(){const u=normUrl($('#wLink').value),a=$('#wGo');a.hidden=!u;i
 function renderWPhoto(){
   const el=$('#wPhoto');if(!w)return;
   if(w.busy){el.innerHTML='<div class="w-ph busy">올리는 중…</div>';return}
-  if(w.photo)el.innerHTML='<div class="w-ph"><img src="'+esc(srcOf(w.photo))+'" data-p="'+esc(w.photo)+'" alt="사진"><button class="q-x" data-act="w-ph-rm" aria-label="사진 빼기">×</button>'+(canPhoto()?'<button class="q-crop" data-act="w-crop">자르기</button>':'')+'</div>';
+  if(w.photo)el.innerHTML='<div class="w-ph"><img src="'+esc(srcOf(w.photo))+'" data-p="'+esc(w.photo)+'" alt="사진" referrerpolicy="no-referrer"><button class="q-x" data-act="w-ph-rm" aria-label="사진 빼기">×</button>'+(canPhoto()?'<button class="q-crop" data-act="w-crop">자르기</button>':'')+'</div>';
   else el.innerHTML=canPhoto()?'<button class="w-ph add" data-act="w-ph-add"><span class="q-add-ic" aria-hidden="true">+</span>사진 넣기</button>':'';
 }
 async function wAddPhoto(files){
@@ -1696,6 +1696,12 @@ async function wAddPhoto(files){
 }
 /* paste a shop link: a small server function reads the page and fills in what's still empty */
 let wFetchT=0;
+async function photoFromPreview(data){
+  if(data.image){try{const blob=await (await fetch(data.image)).blob();return await uploadOne(new File([blob],'link.jpg',{type:blob.type||'image/jpeg'}))}catch(e){}}
+  if(!data.imageUrl)return null;
+  try{const r=await fetch(data.imageUrl,{referrerPolicy:'no-referrer'});if(r.ok){const blob=await r.blob();if(blob.size>200)return await uploadOne(new File([blob],'link.jpg',{type:blob.type||'image/jpeg'}))}}catch(e){}
+  return /^https:\/\//.test(data.imageUrl)?data.imageUrl:null;
+}
 function wStatus(t){const el=$('#wSt');el.hidden=!t;el.textContent=t||''}
 function wLinkInput(){
   const inp=$('#wLink'),v=inp.value,m=/\s/.test(v.trim())&&v.match(/https?:\/\/[^\s<>"']+/);
@@ -1715,10 +1721,9 @@ async function wFetch(u){
   const got=[];
   if(data.title&&!$('#wName').value.trim()){$('#wName').value=String(data.title).slice(0,80);got.push('이름')}
   if(data.price&&!$('#wPrice').value.trim()){$('#wPrice').value=(!data.currency||/KRW/i.test(data.currency))?Number(data.price).toLocaleString('ko-KR')+'원':data.price+' '+data.currency;got.push('가격')}
-  if(data.image&&!ww.photo&&!ww.busy&&canPhoto()){
+  if((data.image||data.imageUrl)&&!ww.photo&&!ww.busy&&canPhoto()){
     wStatus('사진 저장하는 중…');ww.busy=true;renderWPhoto();
-    let ref=null;
-    try{const blob=await (await fetch(data.image)).blob();ref=await uploadOne(new File([blob],'link.'+((blob.type.split('/')[1]||'jpg').replace('jpeg','jpg')),{type:blob.type}))}catch(e){}
+    const ref=await photoFromPreview(data);
     ww.busy=false;
     if(ref&&w===ww&&!ww.photo){ww.photo=ref;got.push('사진')}else if(ref)dropAsset(ref);
     if(w===ww)renderWPhoto();
@@ -2074,6 +2079,7 @@ function cropSwap(photos,orig,old,ref,info){
 function forget(orig,p){const m=origOf(orig,p);if(m&&orig)delete orig[okey(p)];return m?[p,m.p]:[p]}
 async function photoBlob(p){
   p=String(p);
+  if(/^https?:/.test(p)){const r=await fetch(p,{referrerPolicy:'no-referrer'});if(!r.ok)throw new Error('load');return await r.blob()}
   if(!p.startsWith('data:')&&mode==='cloud'&&sb){try{const {data,error}=await sb.storage.from('photos').download(p);if(!error&&data)return data}catch(e){}}
   const r=await fetch(p.startsWith('data:')?p:srcOf(p));if(!r.ok)throw new Error('load');return await r.blob();
 }
