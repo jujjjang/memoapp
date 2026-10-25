@@ -14,6 +14,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preload" as="image" href="assets/loft-reference-source.jpg">
+<link rel="preload" as="image" href="assets/furniture-v1/drawer-cabinet.webp">
+<link rel="preload" as="image" href="assets/furniture-v1/continuous-desk.webp">
+<link rel="preload" as="image" href="assets/furniture-v1/bookcase.webp">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -120,7 +123,7 @@ h1{font-family:var(--font-title);font-weight:700;font-size:30px;line-height:1.1;
 .pill rect{fill:var(--pill-bg)}
 .pill text{font-family:var(--font-title);font-size:11.5px;font-weight:700;fill:var(--pill-ink)}
 .pill .pn{fill:var(--fab)}
-:root[data-skin="winter"] .loft-art{filter:saturate(.6)}
+:root[data-skin="winter"] .loft-art,:root[data-skin="winter"] .furniture-art{filter:saturate(.6)}
 .dl{font-family:var(--font-title);font-size:10px;font-weight:700;fill:#6B5B4D;text-anchor:middle}
 .dc{font-family:var(--font-title);font-size:11px;font-weight:700;fill:#FFFFFF;text-anchor:middle}
 .bl{font-family:var(--font-hand);font-size:12.5px;font-weight:700;fill:var(--label-ink);text-anchor:middle}
@@ -1037,7 +1040,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='25';
+const APP_VERSION='26';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1228,32 +1231,9 @@ function cozyWindow(id,P,L){
   return s+cozyCurtain(id);
 }
 
-function renderRoom(){
-  const c={wish:tops('wish').filter(d=>!d.bought).length,stack:tops('stack').length,box:tops('box').length,board:tops('board').length,trash:tops('trash').length,d:[0,tops('drawer',1).length,tops('drawer',2).length,tops('drawer',3).length]};
-  const P=period(),L=LOOK[P],X='x="-1600" width="3560"';
-  let s='<defs>'+
-    '<linearGradient id="gGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+L.sky[0]+'"/><stop offset="1" stop-color="'+L.sky[1]+'"/></linearGradient>'+
-    '<radialGradient id="gLamp"><stop offset="0" stop-color="#FFE3A6" stop-opacity=".3"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>'+
-    '<pattern id="pCork" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#D9BC97"/><circle cx="2" cy="2" r=".8" fill="#C7A880"/><circle cx="5.3" cy="5" r=".6" fill="#E4CDAE"/></pattern>'+
-    '<pattern id="pStripe" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(90)"><rect width="6" height="6" fill="#EBC6C0"/><rect width="2" height="6" fill="#FBF3EF"/></pattern>'+
-    '<pattern id="pDot" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#EAD7A8"/><circle cx="3.5" cy="3.5" r="1.3" fill="#FBF5E6"/></pattern>'+
-    '<clipPath id="cpGlass"><rect x="30" y="158" width="112" height="186"/></clipPath>'+
-    '<filter id="fBlur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>'+
-  '</defs>';
-
-  s+=cozyRoomBase('a');
-  if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa*.6+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
-  s+=cozyWindow('a',P,L);
-
-  /* pendant lamp (lit at night) */
-  s+='<path d="M272 -1600V118" stroke="#B9A58C" stroke-width="1.2"/><rect x="268" y="114" width="8" height="8" rx="2" fill="#A97A5E"/>';
-  if(P==='night')s+='<ellipse cx="272" cy="150" rx="22" ry="9" fill="url(#gLamp)"/>';
-  s+='<path d="M246 146 260 126Q272 118 284 126L298 146Z" fill="#C99277"/><path d="M246 146Q272 153 298 146Z" fill="'+(P==='night'?'#F5E2BE':'#F2E3CB')+'"/>';
-
-  /* cork board */
-  s+='<rect x="190" y="182" width="156" height="124" rx="6" fill="#8C7458" opacity=".16" filter="url(#fBlur)"/>';
-  s+=furn('board','코르크보드')+'<rect class="tap" x="180" y="168" width="168" height="162"/>';
-  s+='<rect x="186" y="176" width="156" height="124" rx="6" fill="#DCC1A0"/><rect x="194" y="184" width="140" height="108" rx="2" fill="url(#pCork)"/>';
+const FURNITURE_ART={"bookcase":{"src":"assets/furniture-v1/bookcase.webp","width":936,"height":1680,"box":[223,83,491,1515]},"calendar-base":{"src":"assets/furniture-v1/calendar-base.webp","width":1024,"height":1536,"box":[109,171,806,1177]},"drawer-cabinet":{"src":"assets/furniture-v1/drawer-cabinet.webp","width":1051,"height":1496,"box":[27,318,998,1025]},"continuous-desk":{"src":"assets/furniture-v1/continuous-desk.webp","width":1774,"height":887,"box":[31,247,1713,484]},"computer":{"src":"assets/furniture-v1/computer.webp","width":1536,"height":1024,"box":[247,167,1209,741]},"clothes-rail":{"src":"assets/furniture-v1/clothes-rail.webp","width":815,"height":1930,"box":[64,144,688,1610]},"scrapbook":{"src":"assets/furniture-v1/scrapbook.webp","width":2195,"height":716,"box":[89,121,2012,511]},"corkboard":{"src":"assets/furniture-v1/corkboard.webp","width":1430,"height":1100,"box":[85,152,1260,795]},"desktop-vignette":{"src":"assets/furniture-v1/desktop-vignette.webp","width":1433,"height":1098,"box":[78,229,1272,770]},"cabinet-vignette":{"src":"assets/furniture-v1/cabinet-vignette.webp","width":1122,"height":1402,"box":[87,340,965,907]},"floor-plant":{"src":"assets/furniture-v1/floor-plant.webp","width":724,"height":2172,"box":[15,16,694,2136]},"paper-basket":{"src":"assets/furniture-v1/paper-basket.webp","width":1049,"height":1499,"box":[79,292,891,1071]},"knit-pouf":{"src":"assets/furniture-v1/knit-pouf.webp","width":1635,"height":962,"box":[147,117,1341,764]},"wooden-stool":{"src":"assets/furniture-v1/wooden-stool.webp","width":1024,"height":1536,"box":[107,248,810,1045]},"pendant-shade":{"src":"assets/furniture-v1/pendant-shade.webp","width":1586,"height":992,"box":[178,139,1227,719]},"garments":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[96,36,1978,654]},"garment-0":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[96,43,354,478]},"garment-1":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[661,36,312,654]},"garment-2":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[1186,44,390,502]},"garment-3":{"src":"assets/furniture-v1/garments.webp","width":2167,"height":725,"box":[1726,36,348,651]}};
+function drawBoardNotes(){
+  let s='';
   const spots=[[203,196,38,46,-6],[249,200,38,46,5],[293,195,32,42,-3]],tapes=['#CFDCC9','#EED3CB','#EFE2BF'];
   tops('board').sort(byNew).slice(0,3).forEach((d,i)=>{
     const [x,y,w,h,r]=spots[i],cx=x+w/2,cy=y+h/2,p=(d.photos||[])[0];
@@ -1265,96 +1245,63 @@ function renderRoom(){
     s+='<clipPath id="bc'+i+'"><rect x="'+(x+3)+'" y="'+(y+3)+'" width="'+(w-6)+'" height="'+(h-11)+'"/></clipPath><rect x="'+(x+3)+'" y="'+(y+3)+'" width="'+(w-6)+'" height="'+(h-11)+'" fill="#EEE8DF"/><image href="'+esc(srcOf(p))+'" x="'+(x+3)+'" y="'+(y+3)+'" width="'+(w-6)+'" height="'+(h-11)+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#bc'+i+')"/>';
     s+='<rect x="'+(cx-9)+'" y="'+(y-3)+'" width="18" height="6" fill="'+tapes[i]+'" transform="rotate('+(i%2?6:-5)+' '+cx+' '+y+')"/></g>';
   });
-  s+=pill(264,318,'코르크보드')+'</g>';
-
-  /* rug, light on the floor, soft shadows */
+  return s;
+}
+/* Individual illustrated assets share a palette; dates and memo state stay live. */
+function furnitureArt(name,x,y,w,h){
+  const a=FURNITURE_ART[name],clip=name==='calendar-base';
+  // Crop transparent margins in the SVG viewport, keeping the original image intact.
+  return '<svg class="furniture-viewport" data-art="'+name+'" x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" viewBox="'+a.box.join(' ')+'" preserveAspectRatio="none" overflow="hidden" pointer-events="none" aria-hidden="true">'+
+    (clip?'<defs><clipPath id="calendar-paper-crop" clipPathUnits="userSpaceOnUse"><rect x="113" y="344" width="798" height="1000" rx="38"/><circle cx="512" cy="211" r="37"/><rect x="499" y="237" width="26" height="108"/><rect x="267" y="308" width="52" height="62" rx="18"/><rect x="711" y="308" width="52" height="62" rx="18"/></clipPath></defs>':'')+
+    '<image class="furniture-art" href="'+a.src+'" x="0" y="0" width="'+a.width+'" height="'+a.height+'"'+(clip?' clip-path="url(#calendar-paper-crop)"':'')+'/></svg>';
+}
+function continuousDesk(offset){
+  // Both swipe pages show a viewport onto this single 300-unit-wide desk.
+  return furnitureArt('continuous-desk',220-offset,444,300,160);
+}
+function drawHomeImages(c,P,L){
+  let s=cozyRoomBase('a');
+  if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa*.6+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
+  s+=cozyWindow('a',P,L);
+  s+='<path d="M272 -1600V119" stroke="#B9A58C" stroke-width="1.1"/>'+furnitureArt('pendant-shade',246,118,52,35);
+  s+=furn('board','코르크보드')+'<rect class="tap" x="180" y="168" width="168" height="162"/>';
+  s+=furnitureArt('corkboard',186,176,156,124)+drawBoardNotes()+pill(264,318,'코르크보드')+'</g>';
   s+=cozyRug('a',0);
   if(L.floor)s+='<g fill="'+L.floor+'" opacity="'+L.fa+'"><path d="M92 628H140L162 686H114Z"/><path d="M150 628H170L192 686H172Z"/></g>';
-  [[112,610,74,5],[246,605,30,4],[328,606,24,4],[21,617,28,4],[290,606,66,4]].forEach(([x,y,rx,ry])=>{s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#8E765D" opacity=".26" filter="url(#fBlur)"/>'});
-
-  s+='<rect x="47" y="409" width="138" height="191" rx="5" fill="#8C7458" opacity=".19" filter="url(#soft-a)"/>';
-  /* drawer cabinet; a drawer with memos sits a little open with something peeking out */
-  s+='<rect x="42" y="406" width="140" height="184" fill="#D6B189"/><rect x="176" y="408" width="6" height="182" fill="#C9A47C"/>';
-  s+='<path d="M54 590h8l-2 22h-4ZM162 590h8l-2 22h-4Z" fill="#A9825E"/>';
-  s+='<rect x="36" y="398" width="152" height="10" rx="2" fill="#C99E73"/>';
-  [[414,466],[472,524],[530,582]].forEach(([y0,y1],i)=>{
-    const k=i+1,h=y1-y0,full=c.d[k]>0,o=full?3:0,cy=(y0+y1)/2+o/2;
-    s+=furn('drawer:'+k,'서랍 '+POS[k]+' '+shelfName(k))+'<rect class="tap" x="42" y="'+(y0-3)+'" width="140" height="'+(h+6)+'"/>';
-    if(full){
-      s+='<rect x="52" y="'+(y0-1)+'" width="120" height="5" fill="#7E5F43" opacity=".6"/>';
-      if(k===1)s+='<g transform="rotate(-9 74 '+y0+')"><rect x="62" y="'+(y0-9)+'" width="26" height="16" rx="1" fill="#FFFDF8" stroke="#E2D6C4" stroke-width=".7"/><rect x="66" y="'+(y0-6)+'" width="16" height="1.3" fill="#D8CCBA"/><rect x="66" y="'+(y0-3)+'" width="12" height="1.3" fill="#D8CCBA"/></g>'+
-        '<g transform="rotate(7 146 '+y0+')"><rect x="136" y="'+(y0-7)+'" width="20" height="14" rx="1" fill="#F1E5D2" stroke="#E2D6C4" stroke-width=".7"/></g>';
-      if(k===3)s+='<g transform="rotate(-6 82 '+y0+')"><rect x="70" y="'+(y0-8)+'" width="22" height="14" rx="1" fill="#FFFDF8" stroke="#E2D6C4" stroke-width=".7"/><rect x="73" y="'+(y0-5)+'" width="14" height="1.3" fill="#D8CCBA"/></g>';
-    }
-    s+='<rect x="50" y="'+(y0+o)+'" width="124" height="'+(h-o)+'" rx="3" fill="#F4ECE1"/><rect x="50" y="'+(y1-3)+'" width="124" height="3" fill="#E6DACA"/>';
-    if(full){
-      if(k===2)s+='<path d="M60 '+(y0+o-2)+'H96V'+(y0+o+5)+'C93 '+(y0+o+13)+' 88 '+(y0+o+9)+' 85 '+(y0+o+16)+'C80 '+(y0+o+9)+' 72 '+(y0+o+14)+' 68 '+(y0+o+8)+'C65 '+(y0+o+12)+' 62 '+(y0+o+9)+' 60 '+(y0+o+6)+'Z" fill="url(#pStripe)"/><path d="M60 '+(y0+o-2)+'H96" stroke="#D9AFA8" stroke-width="1"/>';
-      if(k===3)s+='<path d="M132 '+(y0+o-2)+'H164V'+(y0+o+4)+'C161 '+(y0+o+12)+' 156 '+(y0+o+8)+' 152 '+(y0+o+14)+'C148 '+(y0+o+7)+' 140 '+(y0+o+12)+' 136 '+(y0+o+6)+'C134 '+(y0+o+9)+' 133 '+(y0+o+7)+' 132 '+(y0+o+5)+'Z" fill="url(#pDot)"/><path d="M132 '+(y0+o-2)+'H164" stroke="#D3BD8A" stroke-width="1"/>';
-      if(k===1)s+='<path d="M120 '+(y0+o-2)+'V'+(y0+o+14)+'l3-3 3 3V'+(y0+o-2)+'Z" fill="#AFC2AE"/>';
-    }
-    s+='<path d="M53 '+(y0+o+2)+'H171" stroke="#FFFBF5" stroke-width=".7" opacity=".7"/><rect x="52" y="'+(y0+o+2)+'" width="120" height="'+(h-o-4)+'" rx="2" fill="none" stroke="#D9CAB6" stroke-width=".45"/>';
-    s+='<circle cx="112" cy="'+cy+'" r="5.2" fill="#B88D64"/><circle cx="110.7" cy="'+(cy-1.5)+'" r="1.6" fill="#E6CDAA"/>';
+  s+=continuousDesk(0);
+  s+=furnitureArt('drawer-cabinet',36,398,152,214);
+  // Hit areas follow the three white drawer fronts in the illustration.
+  [[429,476],[483,530],[537,584]].forEach(([top,bottom],i)=>{
+    const k=i+1;
+    s+=furn('drawer:'+k,'서랍 '+POS[k]+' '+shelfName(k))+'<rect class="tap" x="47" y="'+(top-3)+'" width="131" height="'+(bottom-top+6)+'"/>';
+    if(c.d[k])s+='<path d="M156 '+top+'h5v12l-2.5-2-2.5 2Z" fill="#AFC2AE"/>';
     s+='</g>';
   });
-
-  /* scrapbook lying on the cabinet; slips of paper stick out when it holds memos */
-  s+=furn('stack','스크랩북')+'<rect class="tap" x="40" y="336" width="100" height="62"/>';
-  const slipX=[66,82,98,114],slipH=[11,8,13,9],slipR=[-6,4,-2,7],slipC=['#FFFDF8','#EED3CB','#CFDCC9','#EAD9A8'];
-  for(let i=0;i<Math.min(4,c.stack);i++){const x=slipX[i];
-    s+='<rect x="'+x+'" y="'+(377-slipH[i])+'" width="12" height="'+(slipH[i]+8)+'" rx="1" fill="'+slipC[i]+'" stroke="#DCCFBC" stroke-width=".6" transform="rotate('+slipR[i]+' '+(x+6)+' 381)"/>'}
-  s+='<rect x="49" y="392" width="86" height="6" rx="2" fill="#A97660"/>';
-  s+='<rect x="53" y="379" width="80" height="14" fill="#FBF6EC"/>';
-  for(let y=381.6;y<392;y+=2.6)s+='<path d="M54 '+f(y)+'H132" stroke="#E6DCCB" stroke-width=".7"/>';
-  s+='<rect x="49" y="374" width="86" height="6.5" rx="2" fill="#C48B74"/><rect x="47" y="374" width="9" height="24" rx="3" fill="#A97660"/>';
-  s+='<path d="M108 392v10l2.6-2.2 2.6 2.2v-10Z" fill="#8FA58E"/>';
-  s+=pill(92,356,'스크랩북')+'</g>';
-  s+='<path d="M144 398c-6 0-8-5-8-10s3-8 8-8 8 3 8 8-2 10-8 10Z" fill="#AFC2AE"/><path d="M144 380c-1-8 1-14 5-18M144 380c-3-6-8-8-12-8M145 380c2-5 6-8 10-8" stroke="#7F9A84" stroke-width="1.2" fill="none" stroke-linecap="round"/>';
-  if(P==='night')s+='<circle cx="166" cy="356" r="22" fill="url(#gLamp)"/>';
-  s+='<circle cx="166" cy="387" r="10.5" fill="#E8DBC8"/><rect x="164.5" y="362" width="3" height="16" fill="#CDB89E"/><path d="M151 366 155 342H177L181 366Z" fill="'+(P==='night'?'#FAEBD0':'#F7EFE3')+'"/><path d="M151 366H181" stroke="#E7DAC7" stroke-width="1.5"/>';
-
-  /* desk under the cork board, a few things on top */
-  s+='<path d="M232 462h6l-2 142h-3Z" fill="#A9825E"/>';
-  s+='<rect x="226" y="452" width="1734" height="11" fill="#CDA67C"/><rect x="304" y="455.5" width="30" height="4" rx="2" fill="#E6CDAA"/>';
-  s+='<rect x="220" y="444" width="1740" height="9" rx="2" fill="#C99E73"/>';
-  s+='<rect x="229" y="436" width="34" height="8" rx="1.5" fill="#AFC2AE"/><rect x="232" y="428" width="30" height="8" rx="1.5" fill="#E3C3BA"/><rect x="230" y="421" width="28" height="7" rx="1.5" fill="#EAD8AE"/>';
-  s+='<path d="M233 440h27M236 432h23M234 424.5h21" stroke="#FFFFFF" stroke-width=".8" opacity=".5"/>';
-  s+='<path d="M272 427 270 413" stroke="#C9826A" stroke-width="2.2" stroke-linecap="round"/><path d="M276 427 277 410" stroke="#8FA58E" stroke-width="2.2" stroke-linecap="round"/><path d="M279 427 283 415" stroke="#D9B66E" stroke-width="2.2" stroke-linecap="round"/>';
-  s+='<path d="M268 444h14l-1.2-17h-11.6Z" fill="#E8DBC9"/><path d="M269 431h12" stroke="#D6C6B0" stroke-width="1"/>';
-  s+='<rect x="324" y="410" width="28" height="34" rx="1" fill="#D6BB98"/><rect x="327" y="413" width="22" height="28" fill="#FBF7F0"/><path d="M330.5 438V430a5.5 5.5 0 0 1 11 0v8Z" fill="#AFC2AE"/><circle cx="343.5" cy="420" r="3.6" fill="#D9A08A"/>';
-  /* tall desk lamp: pleated shade, thin brass stem, round foot */
-  const NL=P==='night';
-  if(NL)s+='<ellipse cx="302" cy="370" rx="35" ry="28" fill="url(#gLamp)" opacity=".24" pointer-events="none"/>';
-  s+='<path d="M290 444a12 4.2 0 0 1 24 0Z" fill="#A47B55"/><rect x="300.9" y="389" width="2.2" height="52" fill="#A47B55"/><circle cx="302" cy="415" r="2" fill="#A47B55"/>';
-  s+='<path d="M285 349h34l11 40h-56Z" fill="'+(NL?'#F8E4AE':'#EBD397')+'"/>';
-  s+='<path d="M293.5 349 289 389M302 349v40M310.5 349 315 389" stroke="'+(NL?'#EFD597':'#DCC07F')+'" stroke-width=".9"/>';
-  s+='<path d="M274 389h56" stroke="'+(NL?'#FFF1D2':'#D4B572')+'" stroke-width="2.4" stroke-linecap="round"/><rect x="284" y="347.6" width="36" height="2.4" rx="1.2" fill="#D4B572"/>';
-
-  /* a knit pouf in front of the desk */
-  s+='<path d="M220 572v25a26 6.5 0 0 0 52 0v-25Z" fill="#E8DBC9"/>';
-  s+='<path d="M227 577.5q-1 12 0 24M236 579q-.6 12 0 25M246 579.5v25M256 579q.6 12 0 25M265 577.5q1 12 0 24" stroke="#DCCDB8" stroke-width="1.3" fill="none" stroke-linecap="round"/>';
-  s+='<ellipse cx="246" cy="572" rx="26" ry="6.5" fill="#F2E9DC"/><path d="M233 571.5q13 4 26 0" stroke="#E6D9C6" stroke-width="1" fill="none"/>';
-
-  /* rattan basket under the desk: crumpled paper inside only when something was thrown away */
+  s+=furn('stack','스크랩북')+'<rect class="tap" x="40" y="336" width="100" height="66"/>';
+  const slips=['#FFFDF8','#EED3CB','#CFDCC9','#EAD9A8'];
+  for(let i=0;i<Math.min(4,c.stack);i++)s+='<rect x="'+(62+i*15)+'" y="'+(374-i%2*2)+'" width="10" height="10" rx="1" fill="'+slips[i]+'" transform="rotate('+(i%2?5:-6)+' '+(67+i*15)+' 382)"/>';
+  // The book body rests on the cabinet; its ribbon hangs over the front edge.
+  s+=furnitureArt('scrapbook',47,377.6,88,26)+pill(92,356,'스크랩북')+'</g>';
+  s+=furnitureArt('cabinet-vignette',135,340,47,58);
+  s+=furnitureArt('desktop-vignette',229,347,123,97);
+  s+=furnitureArt('knit-pouf',220,568,52,36);
   s+=furn('trash','쓰레기통')+'<rect class="tap" x="300" y="506" width="60" height="134"/>';
-  s+='<path d="M307 548H349L344 604H312Z" fill="#BE9868"/>';
-  for(let y=555;y<602;y+=6.5)s+='<path d="M'+f(307+(y-548)*.09)+' '+f(y)+'H'+f(349-(y-548)*.09)+'" stroke="#9A774D" stroke-width="1.1" opacity=".85"/>';
-  for(let i=1;i<6;i++){const x=307+i*7;s+='<path d="M'+x+' 550L'+f(x+(328-x)*.09)+' 603" stroke="#A88458" stroke-width=".9" opacity=".7"/>'}
-  s+='<rect x="305" y="535" width="46" height="9" rx="4.5" fill="#A2805A"/>';
-  if(c.trash>=1)s+=crumple(319,539,9,1);
-  if(c.trash>=2)s+=crumple(334,537.5,10,2);
-  s+='<rect x="303" y="540" width="50" height="9" rx="4.5" fill="#CFAE80"/><rect x="303" y="540" width="50" height="3" rx="1.5" fill="#DDC197"/>';
+  s+=furnitureArt('paper-basket',303,539,50,65);
+  if(c.trash>=1)s+=crumple(319,539,8,1);
+  if(c.trash>=2)s+=crumple(335,539,9,2);
+  s+='<path d="M304 542Q328 546 352 542" stroke="#D6B189" stroke-width="2.3" stroke-linecap="round" fill="none"/>';
   s+=pill(322,618,'쓰레기통')+'</g>';
-
-  /* big plant in front */
-  s+='<g stroke="#7F9A84" stroke-width="1.6" fill="none" stroke-linecap="round"><path d="M19 580Q12 530 6 472"/><path d="M19 580Q28 520 30 452"/><path d="M19 580Q16 550 14 522"/><path d="M19 580Q30 548 34 512"/><path d="M19 580Q22 500 22 432"/></g>';
-  s+=leaf(6,472,-16,410,13,'#7F9A84','#E6EEE2')+leaf(30,452,42,388,13,'#93AC95','#EEF3EA')+leaf(14,522,-14,486,10,'#A7BDA6','#F2F5EE')+leaf(34,512,50,476,9,'#7F9A84','#E6EEE2')+leaf(22,432,14,368,12,'#A7BDA6','#F2F5EE');
-  s+='<path d="M-4 566H46L40 616H2Z" fill="#EDE2D3"/><path d="M-2 588H44" stroke="#E0D1BD" stroke-width="2.5"/><rect x="-7" y="560" width="56" height="9" rx="3" fill="#E3D5C2"/>';
-
-  const M=SKINS[skin].map,sk=x=>M?x.replace(/#[0-9A-Fa-f]{6}\b/g,h=>M[h.toUpperCase()]||h):x;
-  $('#room').innerHTML=sk(cozyFinish(s,'a'));
+  s+=furnitureArt('floor-plant',-14,366,78,250);
+  return s;
+}
+function renderRoom(){
+  const c={wish:tops('wish').filter(d=>!d.bought).length,stack:tops('stack').length,box:tops('box').length,board:tops('board').length,trash:tops('trash').length,d:[0,tops('drawer',1).length,tops('drawer',2).length,tops('drawer',3).length]};
+  const P=period(),L=LOOK[P],M=SKINS[skin].map,sk=x=>M?x.replace(/#[0-9A-Fa-f]{6}\b/g,h=>M[h.toUpperCase()]||h):x;
+  $('#room').innerHTML=sk(cozyFinish(drawHomeImages(c,P,L),'a'));
   $('#room2').innerHTML=sk(cozyFinish(drawStudy(c,P,L),'b'));
   $('#roomUp').innerHTML=sk(cozyFinish(drawAttic(c,P,L),'c'));
 }
+
 const navf=(nav,label)=>'<g class="furn" data-nav="'+nav+'" role="button" tabindex="0" aria-label="'+esc(label)+'">';
 const soonf=(key,label)=>'<g class="furn" data-soon="'+key+'" role="button" tabindex="0" aria-label="'+esc(label)+'">';
 function boxIn(c){let s='';
@@ -1371,99 +1318,48 @@ function boxIn(c){let s='';
 }
 function monthsWithMemos(){const set=new Set();all().forEach(d=>{if(d.place==='trash'||d.place==='wish'||d.place==='dday'||!d.created)return;const t=new Date(d.created);set.add(t.getFullYear()*12+t.getMonth())});return set.size}
 
-/* The study shares the window, desktop, floor and rug with the first page. */
+/* The study uses the same desk and window geometry as the first page. */
 function drawStudy(c,P,L){
   let s=cozyRoomBase('b');
   if(L.wall)s+='<g fill="'+L.wall+'" opacity="'+L.wa*.55+'"><path d="M158 172 196 142V470L158 500Z"/><path d="M206 134 230 115V452L206 471Z"/></g>';
   s+='<g transform="translate(-8 0)">'+cozyWindow('b',P,L)+'</g>'+cozyRug('b',360);
-  [[78,608,72,5],[197,602,36,4],[273,602,35,4],[339,603,19,3]].forEach(([x,y,rx,ry])=>{s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#8E765D" opacity=".2" filter="url(#soft-b)"/>'});
   if(L.floor)s+='<path d="M4 628H42L64 686H26ZM52 628H72L94 686H74Z" fill="'+L.floor+'" opacity="'+L.fa*.55+'" pointer-events="none"/>';
+  s+=continuousDesk(360);
 
-  /* Reference calendar: terracotta header, white paper and a large date. */
   const td=new Date(),nd=nextDday();
-  s+=furn('dday','달력'+(nd?' · '+nd.title+' '+nd.lab:''))+'<rect class="tap" x="148" y="211" width="49" height="123"/>';
-  s+='<path d="M172.5 215v7" stroke="#A9825E" stroke-width="1"/><circle cx="172.5" cy="214" r="1.6" fill="#A9825E"/>'+
-    '<rect x="151" y="227" width="46" height="80" rx="2" fill="#8C7458" opacity=".1" filter="url(#soft-b)"/>'+
-    '<rect x="152" y="228" width="42" height="81" rx="1.5" fill="#E6DACA"/><rect x="151" y="226" width="44" height="81" rx="1.5" fill="#FAF6F0"/>'+
-    '<rect x="150" y="224" width="46" height="80" rx="2" fill="#FFFDF8"/>'+
-    '<path d="M150 242v-16a2 2 0 0 1 2-2h42a2 2 0 0 1 2 2v16Z" fill="#C99277" style="fill:#C99277"/>';
-  [160,185].forEach(x=>{s+='<path d="M'+(x-1.5)+' 225v-3a1.5 1.5 0 0 1 3 0v3" stroke="#8C7458" stroke-width="1" fill="none" stroke-linecap="round"/>'});
-  s+='<text class="cal-m" x="172.5" y="234" style="font-size:8px" dominant-baseline="central">'+(td.getMonth()+1)+'월</text>'+
-    '<text class="cal-reference-date" x="172.5" y="264" dominant-baseline="central">'+td.getDate()+'</text>'+
-    '<text class="cal-w" x="172.5" y="284" style="font-size:7.8px" dominant-baseline="central">'+WD[td.getDay()]+'요일</text>';
-  if(nd)s+='<text class="cal-dd cal-ddn" x="172.5" y="298" style="font-size:7.2px" dominant-baseline="central">'+esc(nd.lab)+'</text>';
-  else s+='<path d="M158 297H187" stroke="#E6DACA" stroke-width=".8"/>';
-  s+=pill(172.5,323,'달력')+'</g>';
+  s+=furn('dday','달력'+(nd?' · '+nd.title+' '+nd.lab:''))+'<rect class="tap" x="145" y="201" width="51" height="133"/>';
+  s+=furnitureArt('calendar-base',146,205,49,100);
+  // Alphabetic baselines give each text line its own space, including descenders.
+  s+='<g class="calendar-live" pointer-events="none"><text class="cal-m" x="170.5" y="232" style="font-size:8px">'+(td.getMonth()+1)+'월</text>'+
+    '<text class="cal-reference-date" x="170.5" y="265" style="font-size:30px">'+td.getDate()+'</text>'+
+    '<text class="cal-w" x="170.5" y="283" style="font-size:7.8px">'+WD[td.getDay()]+'요일</text>';
+  if(nd)s+='<text class="cal-dd cal-ddn" x="170.5" y="297" style="font-size:7.2px">'+esc(nd.lab)+'</text>';
+  else s+='<path d="M157 296H184" stroke="#E6DACA" stroke-width=".7"/>';
+  s+='</g>'+pill(170.5,323,'달력')+'</g>';
 
-  /* Continuous tabletop: the left end is intentionally outside the viewport. */
-  s+='<path d="M145 462h6l-2 142h-3Z" fill="#A9825E"/><path d="M146 463v134" stroke="#E6CDAA" stroke-width=".65" opacity=".5"/>'+
-    '<rect x="-1600" y="452" width="1754" height="11" fill="#CDA67C"/><rect x="-1600" y="444" width="1760" height="9" rx="2" fill="#C99E73"/>'+
-    '<path d="M-8 445H158" stroke="#E6CDAA" stroke-width=".8" opacity=".7"/><rect x="48" y="456" width="32" height="2.8" rx="1.4" fill="#E6CDAA"/>';
-  s+=soonf('pc','컴퓨터')+'<rect class="tap" x="17" y="378" width="125" height="106"/>';
-  s+='<g filter="url(#lift-b)"><rect x="32" y="382" width="88" height="52" rx="4.5" fill="#F4ECE1"/><rect x="36" y="386" width="80" height="41" rx="2" fill="#FFFDF8"/>'+
-    '<path d="M36 392v-4a2 2 0 0 1 2-2h76a2 2 0 0 1 2 2v4Z" fill="#E6DACA"/>'+
-    '<circle cx="40" cy="389" r="1" fill="#D9A08A"/><circle cx="43.5" cy="389" r="1" fill="#EAD8AE"/><circle cx="47" cy="389" r="1" fill="#AFC2AE"/>'+
-    '<rect x="42" y="398" width="22" height="21" rx="1.5" fill="#E3C3BA"/><path d="M46 403h13M46 407h11M46 411h9" stroke="#FFFDF8" stroke-width="1" opacity=".7"/>'+
-    '<rect x="69" y="398" width="23" height="21" rx="1.5" fill="#EAD8AE"/><path d="M74 404h12M74 408h10M74 412h12" stroke="#B88D64" stroke-width=".9" opacity=".5"/>'+
-    '<g fill="#DCCFBC"><rect x="98" y="399" width="13" height="1.3" rx=".65"/><rect x="98" y="405" width="10" height="1.3" rx=".65"/><rect x="98" y="411" width="12" height="1.3" rx=".65"/></g>'+
-    '<circle cx="76" cy="430.5" r=".9" fill="#B9A58C"/><path d="M72 434h8l1 7H71Z" fill="#E6DACA"/><rect x="63" y="440" width="26" height="3" rx="1.5" fill="#F4ECE1"/></g>'+
-    '<rect x="38" y="441" width="24" height="2.5" rx="1" fill="#F4ECE1"/><path d="M41 442h18" stroke="#D9CAB6" stroke-width=".4"/>'+
-    '<ellipse cx="98" cy="442" rx="3" ry="1.6" fill="#F4ECE1"/><path d="M130 429h10l-1 14h-8Z" fill="#C99277"/><ellipse cx="135" cy="429" rx="5" ry="1.2" fill="#A97660"/><path d="M140 432q7-1 5 4-1 3-5 2" stroke="#C99277" stroke-width="1.6" fill="none"/>'+
-    '<path d="M134 426q-3-3 0-6" stroke="#FFFDF8" stroke-width="1.1" opacity=".55" fill="none"/>';
-  s+=pill(80,477,'컴퓨터')+'</g>';
-  s+='<path d="M56 538 51 604M91 538 96 604M74 540v64" stroke="#A9825E" stroke-width="2.6" stroke-linecap="round"/>'+
-    '<path d="M54 572H94" stroke="#B88D64" stroke-width="1.6"/><ellipse cx="74" cy="534" rx="24" ry="6" fill="#C99E73"/>'+
-    '<path d="M50 534v4a24 5.5 0 0 0 48 0v-4" fill="#B88D64"/><ellipse cx="74" cy="532" rx="24" ry="6" fill="#D6B189"/><path d="M59 531q15-4 30 0" fill="none" stroke="#E6CDAA" stroke-width=".7" opacity=".7"/>';
+  s+=soonf('pc','컴퓨터')+'<rect class="tap" x="17" y="375" width="137" height="109"/>';
+  s+=furnitureArt('computer',25,371,124,73)+pill(80,477,'컴퓨터')+'</g>';
+  s+=furnitureArt('wooden-stool',50,528,48,76);
+  s+=soonf('shelf','책장')+'<rect class="tap" x="163" y="335" width="70" height="296"/>';
+  s+=furnitureArt('bookcase',163,341,70,262)+pill(198,618,'책장')+'</g>';
 
-  /* Slim oak shelves, deep inset backs, and quiet woven storage. */
-  s+=soonf('shelf','책장')+'<rect class="tap" x="163" y="335" width="68" height="296"/>';
-  s+='<g filter="url(#lift-b)"><rect x="166" y="344" width="64" height="254" rx="1.5" fill="#D6B189"/><rect x="171" y="350" width="54" height="242" fill="url(#recess-b)"/>'+
-    '<rect x="163" y="341" width="70" height="6" rx="1.5" fill="#C99E73"/><rect x="164" y="596" width="68" height="7" rx="1.5" fill="#C99E73"/>';
-  [408,470,532].forEach(y=>{s+='<path d="M171 '+(y-2)+'H225" stroke="#7E5F43" stroke-width="3" opacity=".16"/><rect x="171" y="'+y+'" width="54" height="4" fill="#D6B189"/><path d="M171 '+(y+4)+'H225" stroke="#A9825E" stroke-width=".6" opacity=".5"/>'});
-  s+='<rect x="178" y="362" width="18" height="25" rx="1" fill="#E6D0B2"/><rect x="180" y="364" width="14" height="21" fill="#FBF8F2"/><circle cx="187" cy="372" r="3" fill="#D9A08A"/><path d="M183 382q4-8 8 0Z" fill="#AFC2AE"/>'+
-    '<path d="M205 395h15l-2-11h-11Z" fill="#F4ECE1"/>'+leaf(212,386,203,368,4,'#93AC95')+leaf(212,386,221,367,3.7,'#7F9A84')+leaf(212,386,212,362,4,'#A7BDA6');
-  const cols=['#E3C3BA','#F4ECE1','#AFC2AE','#EAD8AE','#B9C9D3'];
-  // These books are decor; the existing bookshelf action stays unchanged.
-  [175,181,187,193,204,211,217].forEach((x,k)=>{
-    const h=41+(k*7%12),y=469-h;
-    s+='<g'+(k===3?' transform="rotate(9 '+(x+2)+' 469)"':'')+'><rect x="'+x+'" y="'+y+'" width="5" height="'+h+'" rx=".6" fill="'+cols[k%cols.length]+'"/><path d="M'+(x+1.4)+' '+(y+2)+'V467" stroke="#FFFDF8" stroke-width=".55" opacity=".55"/><path d="M'+x+' '+(y+6)+'h5" stroke="#D9CAB6" stroke-width=".7"/></g>';
-  });
-  [175,181,187].forEach((x,k)=>{const h=[39,44,35][k];s+='<rect x="'+x+'" y="'+(531-h)+'" width="5" height="'+h+'" rx=".6" fill="'+cols[(k+2)%cols.length]+'"/><path d="M'+(x+1.2)+' '+(533-h)+'V529" stroke="#FFFDF8" stroke-width=".6" opacity=".55"/>'});
-  s+='<rect x="198" y="520" width="24" height="11" rx="1.5" fill="#E3C3BA"/><rect x="200" y="510" width="21" height="10" rx="1" fill="#EAD8AE"/><path d="M203 514h14" stroke="#FFFDF8" stroke-width=".6"/>'+
-    '<rect x="175" y="551" width="46" height="32" rx="2" fill="#D6B189"/><rect x="174" y="548" width="48" height="5" rx="1.5" fill="#E6D0B2"/>';
-  for(let y=557;y<581;y+=4)s+='<path d="M177 '+y+'h42" stroke="#B88D64" stroke-width=".65" opacity=".6"/>';
-  for(let x=180;x<220;x+=6)s+='<path d="M'+x+' 554v28" stroke="#E6CDAA" stroke-width="1.4" opacity=".7"/>';
-  s+='<rect x="191" y="560" width="14" height="6" rx="1" fill="#F4ECE1"/></g>'+pill(198,618,'책장')+'</g>';
-
-  /* Clothes keep their original live wish-count behavior. */
   s+=furn('wish','행거 · 위시리스트')+'<rect class="tap" x="236" y="344" width="80" height="288"/>';
-  s+='<path d="M242 354V599M307 354V599" stroke="#C99E73" stroke-width="3.6" stroke-linecap="round"/><rect x="237" y="349" width="75" height="5" rx="2.5" fill="#A9825E"/>'+
-    '<path d="M242 354V595M307 354V595" stroke="#E6CDAA" stroke-width=".65" opacity=".55"/>'+
-    '<rect x="238" y="570" width="74" height="6" rx="1" fill="#D6B189"/><rect x="235" y="597" width="16" height="5" rx="2" fill="#A9825E"/><rect x="299" y="597" width="16" height="5" rx="2" fill="#A9825E"/>';
-  const hang=x=>'<path d="M'+x+' 361v-4a2.2 2.2 0 1 1 2.2-2.2M'+(x-12)+' 366 '+x+' 360 '+(x+12)+' 366" stroke="#8C7458" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
-  const cloth=[
-    x=>'<path d="M'+(x-6)+' 363Q'+x+' 369 '+(x+6)+' 363L'+(x+13)+' 367L'+(x+14)+' 433H'+(x-14)+'L'+(x-13)+' 367Z" fill="#AFC2AE"/><path d="M'+(x-6)+' 363 '+x+' 381 '+(x+6)+' 363M'+x+' 381V433M'+(x-10)+' 376l1 47" stroke="#8FA58E" stroke-width=".8" opacity=".7" fill="none"/>'+[393,406,419].map(y=>'<circle cx="'+(x+2.5)+'" cy="'+y+'" r="1" fill="#F4ECE1"/>').join(''),
-    x=>'<path d="M'+(x-6)+' 363Q'+x+' 368 '+(x+6)+' 363L'+(x+10)+' 368L'+(x+8)+' 402L'+(x+17)+' 470H'+(x-17)+'L'+(x-8)+' 402L'+(x-10)+' 368Z" fill="#EBC6C0"/><path d="M'+(x-8)+' 402h16M'+(x-6)+' 410l-5 56M'+(x+4)+' 410l5 56" stroke="#D9AFA8" stroke-width=".8" fill="none"/><path d="M'+(x-17)+' 467h34" stroke="#FFFDF8" stroke-width=".6" opacity=".5"/>',
-    x=>'<path d="M'+(x-6)+' 363Q'+x+' 369 '+(x+6)+' 363L'+(x+13)+' 367L'+(x+14)+' 433H'+(x-14)+'L'+(x-13)+' 367Z" fill="#F4ECE1"/><path d="M'+(x-8)+' 372v58M'+(x-2)+' 374v56M'+(x+5)+' 373v57" stroke="#D9CAB6" stroke-width="1.6" opacity=".45"/><path d="M'+(x-6)+' 363 '+(x-1)+' 373 '+x+' 367 '+(x+1)+' 373 '+(x+6)+' 363" fill="#FFFDF8"/>',
-    x=>'<path d="M'+(x-6)+' 363Q'+x+' 369 '+(x+6)+' 363L'+(x+14)+' 367L'+(x+15)+' 486H'+(x-15)+'L'+(x-14)+' 367Z" fill="#EAD8AE"/><path d="M'+(x-6)+' 363 '+(x-2)+' 396M'+(x+6)+' 363 '+(x+2)+' 396M'+x+' 396V484M'+(x-10)+' 410v68" stroke="#D3BD8A" stroke-width=".9" fill="none"/>'
-  ];
-  const nw=Math.min(4,c.wish),xs=[293,281,266,253];
-  if(!nw)[258,290].forEach(x=>{s+=hang(x)});
-  for(let k=nw-1;k>=0;k--){const x=xs[k];s+='<g filter="url(#lift-b)">'+hang(x)+cloth[k](x)+'</g>'}
+  s+=furnitureArt('clothes-rail',236,349,80,253);
+  const nw=Math.min(4,c.wish),xs=[293,281,266,253],widths=[34,37,36,36],heights=[84,120,84,136];
+  if(!nw)[258,290].forEach(x=>{s+='<path d="M'+x+' 363v-5a2 2 0 1 1 2-2M'+(x-11)+' 369 '+x+' 362 '+(x+11)+' 369Z" fill="none" stroke="#8C7458" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round"/>'});
+  for(let k=nw-1;k>=0;k--)s+=furnitureArt('garment-'+k,xs[k]-widths[k]/2,351,widths[k],heights[k]);
   const shoeCat=wcats.filter(c=>/신발|슈즈|shoe/i.test(c.name)).map(c=>c.id);
-  if(tops('wish').some(d=>!d.bought&&shoeCat.includes(d.cat)))s+='<path d="M244 569c0-5 2-8 5-8s3 3 7 4 6 2 6 4Z" fill="#C48B74"/>';
-  s+='<path d="M272 545h21l-2 25h-17Z" fill="#F4ECE1"/><path d="M277 547v-7a5.5 5.5 0 0 1 11 0v7" stroke="#C99277" stroke-width="1.4" fill="none"/><circle cx="282.5" cy="557" r="2.3" fill="#E3C3BA"/>';
+  if(tops('wish').some(d=>!d.bought&&shoeCat.includes(d.cat)))s+='<path d="M244 573c0-5 2-8 5-8s3 3 7 4 6 2 6 4Z" fill="#C48B74"/>';
   s+=pill(276,618,'행거')+'</g>';
 
-  /* Reuse the approved reference pixels directly; crop only at render time. */
+  /* Keep the approved attic artwork and its independent ladder navigation. */
   s+=navf('up','옥탑방으로 올라가기')+'<rect class="tap" x="199" y="118" width="159" height="178"/>';
   s+='<svg x="197" y="120" width="160" height="160" viewBox="410 270 330 330" preserveAspectRatio="none" pointer-events="none" aria-hidden="true"><defs><clipPath id="loft-reference-crop" clipPathUnits="userSpaceOnUse"><path d="M410 271 735 456V556H410Z"/><rect x="649" y="550" width="77" height="40"/></clipPath></defs><image class="loft-art" href="assets/loft-reference-source.jpg" x="0" y="0" width="747" height="1536" clip-path="url(#loft-reference-crop)"/></svg>';
   s+=pill(277,279,'옥탑방')+'</g>';
   s+=navf('up','사다리로 옥탑방 올라가기')+'<rect class="tap" x="312" y="253" width="44" height="356"/>';
   for(let y=293;y<598;y+=37){const t=(y-275)/329,l=317+t,r=347+t*4;s+='<path d="M'+f(l+1)+' '+y+'H'+f(r-1)+'" stroke="#B88D64" stroke-width="2.6" stroke-linecap="round"/><path d="M'+f(l+1)+' '+(y-.8)+'H'+f(r-1)+'" stroke="#E6CDAA" stroke-width=".5"/>'}
   s+='<path d="M318 604 317 275M351 604 347 275" stroke="#C99E73" stroke-width="4" stroke-linecap="round"/><path d="M317.5 600 316.5 277M350.5 600 346.5 277" stroke="#E6CDAA" stroke-width=".65" opacity=".6"/>';
-  s+='</g>';
-  return s;
+  return s+'</g>';
 }
 
 /* the rooftop room: sloped ceiling, a round window, one bulb, boxes stacked up — unsorted thoughts live here */
