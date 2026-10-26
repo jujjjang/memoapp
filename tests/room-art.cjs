@@ -103,6 +103,12 @@ for (const {hour,time,expected} of times) for (const skin of ['beige', 'winter']
   assert(!rooms['#room2'].includes('class="wall-picture"'), 'standalone wall picture removed');
   assert(!rooms['#room2'].includes('assets/loft-reference-source.jpg'), 'closed triangular loft replaced');
   assert(scenes['#room2']['loft-platform'], 'approved open platform artwork present');
+  const pocket=scenes['#room2']['linen-pocket'];
+  assert(pocket,'linen wall pocket decor is present');
+  assert(pocket.x>window.x+window.w,'pocket clears the window frame');
+  const bookcase=attrs(rooms['#room2'].match(/<svg class="bookcase-three"[^>]+>/)[0]);
+  assert(pocket.y+pocket.h<+bookcase.y,'pocket clears the bookcase top');
+  assert(pocket.x+pocket.w<scenes['#room2']['clothes-rail'].x,'pocket clears the clothes rail');
   assert(rooms['#room2'].includes('data-structure="open-mezzanine"'), 'ceiling is part of the room');
   assert(scenes['#roomUp']['attic-bed'], 'matching daybed in upstairs interior');
   near(scenes['#roomUp']['attic-bed'].y+scenes['#roomUp']['attic-bed'].h,554,'daybed rests on the floor');
