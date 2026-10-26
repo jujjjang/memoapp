@@ -1069,7 +1069,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='42';
+const APP_VERSION='43';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1187,14 +1187,14 @@ function crumple(cx,cy,r,seed){
 
 /* Shared materials and room geometry keep both swipe pages in the same room. */
 function cozyDefs(id){
-  const mood={day:['#E2D7C8','#DED1BF','#DECBAF','#D8C2A3'],dusk:['#E6D8C8','#DFCEB9','#DCC5A9','#D4BB9C'],night:['#B8AA97','#AFA08C','#BBA487','#AD9579']}[period()];
+  const mood={day:['#E8DED0','#E1D5C3','#E5D3B9','#DCC5A8'],dusk:['#E6D8C8','#DFCEB9','#DCC5A9','#D4BB9C'],night:['#B8AA97','#AFA08C','#BBA487','#AD9579']}[period()];
   const pastel=(name,k,sat)=>{
     const lum=[.2126,.7152,.0722],cream=[.965,.925,.863],m=[];
     for(let row=0;row<3;row++)m.push(...lum.map((v,col)=>k*((row===col?sat:0)+(1-sat)*v)),0,(1-k)*cream[row]);
     return '<filter id="'+name+id+'" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+m.concat([0,0,0,1,0]).map(v=>v.toFixed(5)).join(' ')+'"/></filter>';
   };
   const gradient=(name,stops)=>'<linearGradient id="'+name+id+'" x1="0" y1="0" x2=".15" y2="1">'+stops.map(([at,col])=>'<stop offset="'+at+'" stop-color="'+col+'"/>').join('')+'</linearGradient>';
-  return '<defs>'+pastel('furniture-pastel-',.72,.82)+pastel('furniture-drawn-',.82,.84)+pastel('loft-tone-',.9,.86)+gradient('oak-',[[0,'#D6B189'],[.4,'#CDA67C'],[1,'#C9A47C']])+
+  return '<defs>'+pastel('furniture-pastel-',.66,.76)+pastel('furniture-drawn-',.67,.74)+pastel('loft-tone-',.76,.78)+gradient('oak-',[[0,'#D6B189'],[.4,'#CDA67C'],[1,'#C9A47C']])+
     gradient('edge-',[[0,'#D6B189'],[.25,'#C99E73'],[1,'#B88D64']])+
     gradient('recess-',[[0,'#A9825E'],[.12,'#B88D64'],[1,'#C9A47C']])+
     gradient('ivory-',[[0,'#FBF8F2'],[.55,'#F4ECE1'],[1,'#E6DACA']])+
@@ -1257,10 +1257,10 @@ function windowLight(id,P,layer){
   if(P==='night')return '';
   const dusk=P==='dusk',col=dusk?'#FFE1CC':'#FFF7E9',key='sunwash-'+id+'-'+layer;
   const wall=layer==='wall',x=id==='a'?92:22;
-  let s='<g class="window-light" data-layer="'+layer+'" pointer-events="none"><defs><linearGradient id="'+key+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="'+col+'" stop-opacity="0"/><stop offset=".28" stop-color="'+col+'" stop-opacity=".42"/><stop offset=".66" stop-color="'+col+'" stop-opacity=".24"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient><filter id="'+key+'-blur" x="-50%" y="-30%" width="200%" height="170%"><feGaussianBlur stdDeviation="'+(wall?7:5)+'"/></filter></defs>';
+  let s='<g class="window-light" data-layer="'+layer+'" pointer-events="none"><defs><linearGradient id="'+key+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="'+col+'" stop-opacity="0"/><stop offset=".28" stop-color="'+col+'" stop-opacity=".88"/><stop offset=".66" stop-color="'+col+'" stop-opacity=".64"/><stop offset="1" stop-color="'+col+'" stop-opacity=".12"/></linearGradient><filter id="'+key+'-blur" x="-50%" y="-30%" width="200%" height="170%"><feGaussianBlur stdDeviation="'+(wall?2.8:3.2)+'"/></filter></defs>';
   s+='<g fill="url(#'+key+')" filter="url(#'+key+'-blur)">';
-  if(wall)s+='<path d="M164 174Q183 155 194 151L242 481Q212 499 188 494Z"/><path d="M201 145L218 133 269 463 247 480Z"/>';
-  else s+='<path d="M'+x+' 608q29-9 56-2l51 101q-40 16-74 2Z"/><path d="M'+(x+65)+' 607l21-5 52 95-22 10Z"/>';
+  if(wall)s+='<path d="M169 192L193 174 248 501 211 512Z"/><path d="M206 165L221 154 281 483 258 495Z"/>';
+  else s+='<path d="M'+x+' 585l48-10 72 130-57 12Z"/><path d="M'+(x+65)+' 579l22-5 72 128-25 7Z"/>';
   return s+'</g></g>';
 }
 
