@@ -1066,7 +1066,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='40';
+const APP_VERSION='41';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1203,7 +1203,7 @@ function cozyDefs(id){
     '<radialGradient id="ambient-'+id+'"><stop stop-color="#FFF0CD" stop-opacity=".74"/><stop offset=".35" stop-color="#FFE4B5" stop-opacity=".4"/><stop offset=".7" stop-color="#FFDFAB" stop-opacity=".13"/><stop offset="1" stop-color="#FFDFAB" stop-opacity="0"/></radialGradient>'+
     '<linearGradient id="beam-'+id+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#FFFBF5" stop-opacity=".55"/><stop offset="1" stop-color="#FFFBF5" stop-opacity="0"/></linearGradient>'+
     '<pattern id="grain-'+id+'" width="90" height="23" patternUnits="userSpaceOnUse"><path d="M-10 6Q15 2 40 6T100 6M-10 17Q12 13 42 17T100 17M20 11q13-3 27 0" fill="none" stroke="#8C7458" stroke-width=".45" opacity=".22"/><path d="M0 8Q27 4 58 8T100 8" fill="none" stroke="#FBF5E6" stroke-width=".5" opacity=".45"/></pattern>'+
-    '<pattern id="weave-'+id+'" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 .5H3M.5 0V3" stroke="#B9A58C" stroke-width=".24" opacity=".035"/></pattern>'+
+    '<pattern id="weave-'+id+'" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 .5H3M.5 0V3" stroke="#B9A58C" stroke-width=".24" opacity=".15"/></pattern>'+
     '<pattern id="plaster-'+id+'" width="13" height="17" patternUnits="userSpaceOnUse"><path d="M2 3h.6M8 11h.5M11 5h.7" stroke="#8C7458" stroke-width=".45" opacity=".13" stroke-linecap="round"/><path d="M4 14h1M9 2h.8" stroke="#FFFBF5" stroke-width=".6" opacity=".55"/></pattern>'+
     '<filter id="night-material-'+id+'" filterUnits="userSpaceOnUse" x="-200" y="-200" width="760" height="1140" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".82 0 0 0 .025 0 .80 0 0 .018 0 0 .76 0 .01 0 0 0 1 0"/></filter>'+
     '<filter id="soft-'+id+'" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>'+
@@ -1221,13 +1221,15 @@ function cozyFinish(s,id){
 function cozyRoomBase(id){
   const X='x="-1600" width="3560"';
   return '<rect '+X+' y="-1600" height="2160" fill="url(#wall-'+id+')"/>'+
+    '<rect '+X+' y="-1600" height="2148" fill="url(#plaster-'+id+')"/><rect '+X+' y="-1600" height="2148" fill="url(#weave-'+id+')"/>'+
     '<rect '+X+' y="548" height="12" fill="#F0EAE1"/><path d="M-1600 548H1960" stroke="#FBF8F2" stroke-width="1.2"/>'+
     '<rect '+X+' y="560" height="1600" fill="url(#floor-'+id+')"/><rect '+X+' y="559.5" height="1.5" fill="#C8B092"/>'+
-    '<g fill="none" stroke="#8C7458" stroke-width=".55" opacity=".12"><path d="M-1600 591H1960M-1600 637H1960M-1600 699H1960M86 560v31M294 560v31M194 591v46M24 637v62M307 637v62"/></g>';
+    '<rect '+X+' y="562" height="1598" fill="url(#grain-'+id+')" opacity=".72"/>'+
+    '<g fill="none" stroke="#8C7458" stroke-width=".65" opacity=".23"><path d="M-1600 591H1960M-1600 637H1960M-1600 699H1960M86 560v31M294 560v31M194 591v46M24 637v62M307 637v62"/></g>';
 }
 
 function cozyStool(id){
-  const seat=furnitureLayout('chair-backless',264,542,64,66);return furnitureArt('chair-backless',264,542,64,66,id)+furnitureArt('sleeping-cat',seat.x+(seat.w-48)/2,seat.y-28,48,33,id);
+  const seat=furnitureLayout('chair-backless',264,542,64,66);return furnitureArt('chair-backless',264,542,64,66,id)+furnitureArt('sleeping-cat',seat.x+(seat.w-48)/2,seat.y-24,48,33,id);
 }
 function cozyDesktop(surface,id){
   return '<g class="desktop-still-life" data-surface="'+f(surface)+'" pointer-events="none">'+furnitureArt('desktop-vignette',224,surface-100,137,100,id)+'</g>';
@@ -1242,7 +1244,7 @@ function cozyNightLights(id){
   for(const t of (main?[.1,.3,.5,.7,.9]:[.13,.4,.67,.91])){
     const x=x0+(x1-x0)*t,y=(1-t)*(1-t)*y0+2*(1-t)*t*cy+t*t*y1;
     s+='<ellipse cx="'+f(x)+'" cy="'+f(y+5)+'" rx="18" ry="23" fill="url(#warm-'+id+')" opacity=".34"/>'+
-      '<path d="M'+f(x)+' '+f(y)+'v3" stroke="#A18A69" stroke-width="1.4"/><ellipse cx="'+f(x)+'" cy="'+f(y+5.2)+'" rx="2.5" ry="3.1" fill="#FFE8AF"/>';
+      materialBulb(id,x,y+5.2,.48,true);
   }
   if(main){const surface=deskSurface();s+='<ellipse cx="311" cy="'+f(surface-71)+'" rx="29" ry="36" fill="url(#warm-'+id+')" opacity=".22"/>'; }
   return s+'</g>';
@@ -1260,7 +1262,9 @@ function cozyRug(id,offset){
 }
 function cozyCurtain(id){
   const a=FURNITURE_ART.curtain,h=435,w=h*a.box[2]/a.box[3];
-  return '<path d="M-1 117H173" stroke="#CEB89A" stroke-width="1.4" stroke-linecap="round"/>'+furnitureArt('curtain',-7,113,w,h,id,'top');
+  let s='<g class="curtain-rod" pointer-events="none"><path d="M-4 118H175" stroke="#8C7054" stroke-width="4" stroke-linecap="round"/><path d="M-4 116.8H175" stroke="#DDC4A4" stroke-width="1.3" stroke-linecap="round"/><ellipse cx="175" cy="117.6" rx="3.6" ry="4" fill="url(#edge-'+id+')"/><path d="M161 118v-7h5v7" fill="none" stroke="#A08160" stroke-width="1.5"/>';
+  for(const x of [3,10,17,24,31,38])s+='<ellipse cx="'+x+'" cy="120" rx="2.2" ry="4.2" fill="none" stroke="#B19573" stroke-width="1.2"/>';
+  return s+'</g>'+furnitureArt('curtain',-7,122,w,h-9,id,'top');
 }
 function cozyWindow(id,P,L,curtain=true){
   const a=FURNITURE_ART['window-frame'],frame=furnitureLayout('window-frame',6,119,166,234,'top'),k=frame.w/a.box[2],g=a.glass;
@@ -1336,10 +1340,12 @@ function drawHomeImages(c,P,L){
     s+='</g>';
   });
   s+=furn('stack','스크랩북')+'<rect class="tap" x="40" y="'+f(cabinetSurface-62)+'" width="92" height="66"/>';
-  const slips=['#FFFDF8','#EED3CB','#CFDCC9','#EAD9A8'];
-  for(let i=0;i<Math.min(4,c.stack);i++)s+='<rect x="'+(62+i*15)+'" y="'+f(cabinetSurface-22-i%2*2)+'" width="10" height="10" rx="1" fill="'+slips[i]+'" transform="rotate('+(i%2?5:-6)+' '+(67+i*15)+' '+f(cabinetSurface-15)+')"/>';
-  // The book body rests on the cabinet; its ribbon hangs over the front edge.
-  s+=art('scrapbook',47,cabinetSurface-26,88,26)+pill(92,cabinetSurface-48,'스크랩북')+'</g>';
+  const bookY=cabinetSurface-34;
+  s+='<g class="scrapbook-keepsakes" pointer-events="none">';
+  for(const [x,dy,r,sky] of [[64,0,-13,'#B9C7C2'],[87,-3,7,'#C9B8A9'],[105,1,16,'#B7C5CF']]){
+    s+='<g transform="rotate('+r+' '+x+' '+f(bookY+8)+')"><rect x="'+x+'" y="'+f(bookY-5+dy)+'" width="18" height="23" rx=".5" fill="#FFFDF8" stroke="#C5B7A4" stroke-width=".45"/><rect x="'+(x+2)+'" y="'+f(bookY-3+dy)+'" width="14" height="15" fill="'+sky+'"/><path d="M'+(x+2)+' '+f(bookY+12+dy)+'v-5l5-4 4 5 5-3v7Z" fill="#829783" opacity=".8"/><circle cx="'+(x+12)+'" cy="'+f(bookY+dy)+'" r="2" fill="#F6E7BF"/></g>';
+  }
+  s+='</g>'+art('scrapbook',43,cabinetSurface-34,98,34)+pill(92,cabinetSurface-53,'스크랩북')+'</g>';
   s+=art('cabinet-vignette',133,cabinetSurface-58,51,58);
   s+=cozyDesktop(surface,'a');
   s+=cozyStool('a');
@@ -1394,30 +1400,46 @@ function openLoftCeiling(id,inside=false){
   if(!inside)s+='<g class="ceiling-crossbeam" pointer-events="none"><path d="M209 45 302 -14 321 -14 218 52Z" fill="#C6A078"/><path d="M218 52 321 -14H342L218 65Z" fill="#B68E63"/><path d="M209 45 218 52V65L209 59Z" fill="#AE855D"/><path d="M218 53 332 -16" stroke="#D0AE84" stroke-width=".65" opacity=".55"/><path d="M222 57Q252 41 279 22T330 -10" fill="none" stroke="#9C784F" stroke-width=".45" opacity=".28"/></g>';
   return s;
 }
+function materialBulb(id,x,y,scale,lit){
+  let s='<g transform="translate('+f(x)+' '+f(y)+') scale('+scale+')"><path d="M-2.7-6.5C-7-4-7 2-3.8 5.3Q0 8.4 3.8 5.3C7 2 7-4 2.7-6.5Z" fill="'+(lit?'#FFE8AF':'#E5DCCB')+'" stroke="#BDA581" stroke-width=".55"/><path d="M-2.4-3.8Q-4.8-1.5-3.6 2.2" stroke="#FFFDF3" opacity=".85" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M-1.6-4v4l1.6 2 1.6-2v-4" stroke="'+(lit?'#D3A052':'#B7A483')+'" stroke-width=".55" fill="none"/><rect x="-3" y="-10" width="6" height="4.5" rx="1" fill="url(#edge-'+id+')"/>';
+  for(const y of [-9,-7.8,-6.6])s+='<path d="M-2.8 '+y+'h5.6" stroke="#8A7156" stroke-width=".45"/>';
+  return s+'</g>';
+}
 function hangingBulb(id,P,x,y,top){
   const lit=P!=='day';
   let s='<g class="loft-pendant" data-lit="'+lit+'" pointer-events="none">';
   if(lit)s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+(id==='c'?68:44)+'" ry="'+(id==='c'?82:58)+'" fill="url(#warm-'+id+')" opacity="'+(P==='night'?.52:.23)+'"/>';
-  s+='<path d="M'+x+' '+f(top)+'V'+(y-9)+'" stroke="#927959" stroke-width=".9"/><ellipse cx="'+x+'" cy="'+f(top)+'" rx="2" ry="1" fill="#A38762"/><rect x="'+(x-3.2)+'" y="'+(y-11)+'" width="6.4" height="6" rx="2" fill="#B69872"/><ellipse '+(lit?'':'class="loft-day-lamp" ')+'cx="'+x+'" cy="'+y+'" rx="6" ry="7.5" fill="'+(lit?'#FFE9B2':'#E1D5BE')+'"/><path d="M'+(x-2)+' '+(y+1)+'q2 2 4 0" fill="none" stroke="'+(lit?'#F3D596':'#CABB9E')+'" stroke-width=".6"/></g>';
-  return s;
+  s+='<path d="M'+x+' '+f(top)+'V'+(y-9)+'" stroke="#927959" stroke-width="1.1"/><path d="M'+(x-.3)+' '+f(top)+'V'+(y-10)+'" stroke="#D7C6AD" stroke-width=".3"/><ellipse cx="'+x+'" cy="'+f(top)+'" rx="2.5" ry="1.3" fill="#A38762"/>';
+  return s+'<g'+(lit?'':' class="loft-day-lamp"')+'>'+materialBulb(id,x,y,1,lit)+'</g></g>';
 }
 function studyLadder(){
   const a=loftGeometry(),top=a.floor,bottom=500,lean=.25,dx=(bottom-top)*lean;
   let s=navf('up','사다리로 옥탑방 올라가기')+'<path class="tap" d="M'+f(a.left-5)+' '+f(top)+'H'+f(a.right+5)+'L'+f(a.right+dx+5)+' '+bottom+'H'+f(a.left+dx-5)+'Z"/>';
   s+='<g class="connected-ladder" data-direction="right" data-top="'+f(top)+'" data-bottom="500" pointer-events="none">';
-  for(let y=top+22;y<bottom-7;y+=29){const shift=(y-top)*lean;s+='<path d="M'+f(a.left+shift)+' '+f(y)+'H'+f(a.right+shift)+'" stroke="#C6A17C" stroke-width="2.8" stroke-linecap="round"/>';}
-  s+='<path d="M'+f(a.left)+' '+f(top)+' '+f(a.left+dx)+' '+bottom+'M'+f(a.right)+' '+f(top)+' '+f(a.right+dx)+' '+bottom+'" fill="none" stroke="#C8A580" stroke-width="4.2" stroke-linecap="round"/>';
+  for(let y=top+22;y<bottom-7;y+=29){
+    const shift=(y-top)*lean,l=a.left+shift,r=a.right+shift;
+    s+='<path d="M'+f(l)+' '+f(y-2)+'H'+f(r)+'v4H'+f(l)+'Z" fill="url(#edge-b)"/><path d="M'+f(l)+' '+f(y-2)+'l-1.5-2H'+f(r-1.5)+'l1.5 2Z" fill="#DFC19E"/><path d="M'+f(l+3)+' '+f(y-.4)+'H'+f(r-3)+'" stroke="#A47F58" stroke-width=".45"/>';
+  }
+  for(const x of [a.left,a.right]){
+    s+='<path d="M'+f(x+1.2)+' '+f(top)+'L'+f(x+dx+1.2)+' '+bottom+'" stroke="#98734F" stroke-width="5.4" stroke-linecap="round"/><path d="M'+f(x)+' '+f(top)+'L'+f(x+dx)+' '+bottom+'" stroke="#C7A17A" stroke-width="4.6" stroke-linecap="round"/><path d="M'+f(x-.9)+' '+f(top+1)+'L'+f(x+dx-.9)+' '+f(bottom-1)+'" stroke="#E0C5A5" stroke-width="1" stroke-linecap="round"/><path d="M'+f(x+.6)+' '+f(top+6)+'L'+f(x+dx+.6)+' '+f(bottom-6)+'" stroke="#A5815C" stroke-width=".45" opacity=".6"/>';
+  }
   return s+'</g></g>';
 }
 function threeTierBookcase(){
  const w=100,height=957*(100/491),x=152,y=572-height;
  return '<svg class="bookcase-three" data-tiers="3" x="'+x+'" y="'+f(y)+'" width="'+w+'" height="'+f(height)+'" viewBox="0 0 '+w+' '+height+'" overflow="hidden" pointer-events="none">'+furnitureArt('bookcase-three',0,0,w,height,'b','top')+'</svg>';
 }
+function linenPocket(id){
+  const p=furnitureLayout('linen-pocket',180,269,51,89,'top');
+  const x=p.x+p.w*.075,y=p.y+p.h*.305,w=p.w*.85,h=p.h*.69;
+  return furnitureArt('linen-pocket',180,269,51,89,id,'top')+
+    '<g class="linen-stitching" pointer-events="none"><rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" rx="2" fill="url(#weave-'+id+')"/><path d="M'+f(x+2)+' '+f(y+2)+'v'+f(h-4)+'h'+f(w-4)+'v-'+f(h-4)+'" fill="none" stroke="#AF9B82" stroke-width=".45" stroke-dasharray="1.1 1.2" opacity=".65"/><path d="M'+f(x+2)+' '+f(y+h*.48)+'q'+f(w*.45)+' 3 '+f(w-4)+' 0" fill="none" stroke="#B4A18A" stroke-width=".7" opacity=".55"/></g>';
+}
 function drawStudy(c,P,L){
   const art=(name,x,y,w,h,anchor)=>furnitureArt(name,x,y,w,h,'b',anchor),surface=deskSurface();
   let s=cozyRoomBase('b')+windowLight('b',P,'wall')+openLoftCeiling('b')+hangingBulb('b',P,263,122,loftCeilingY(263)+6);
   s+=cozyWindow('b',P,L,false)+cozyRug('b',360)+windowLight('b',P,'floor')+studyLadder();
-  s+=art('linen-pocket',180,269,51,89,'top');
+  s+=linenPocket('b');
   s+=continuousDesk(360);
 
   s+=soonf('pc','컴퓨터')+'<rect class="tap" x="17" y="375" width="137" height="109"/>';
