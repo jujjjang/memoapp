@@ -1069,7 +1069,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='43';
+const APP_VERSION='44';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1218,7 +1218,7 @@ function cozyFinish(s,id){
   s=s.replace(/fill="#F4ECE1"/g,'fill="url(#ivory-'+id+')"');
   s=s.replace(/fill="#C99277"/g,'fill="url(#clay-'+id+')"');
   const night=period()==='night';
-  return cozyDefs(id)+(night?'<g class="night-room" filter="url(#night-material-'+id+')">'+s+'</g>'+cozyNightLights(id):s);
+  return cozyDefs(id)+(night?'<g class="night-room" filter="url(#night-material-'+id+')">'+s+'</g>'+cozyNightLights(id):daylightRoom(s,id,period()));
 
 }
 function cozyRoomBase(id){
@@ -1253,15 +1253,67 @@ function cozyNightLights(id){
   return s+'</g>';
 }
 
-function windowLight(id,P,layer){
-  if(P==='night')return '';
-  const dusk=P==='dusk',col=dusk?'#FFE1CC':'#FFF7E9',key='sunwash-'+id+'-'+layer;
-  const wall=layer==='wall',x=id==='a'?92:22;
-  let s='<g class="window-light" data-layer="'+layer+'" pointer-events="none"><defs><linearGradient id="'+key+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="'+col+'" stop-opacity="0"/><stop offset=".28" stop-color="'+col+'" stop-opacity=".88"/><stop offset=".66" stop-color="'+col+'" stop-opacity=".64"/><stop offset="1" stop-color="'+col+'" stop-opacity=".12"/></linearGradient><filter id="'+key+'-blur" x="-50%" y="-30%" width="200%" height="170%"><feGaussianBlur stdDeviation="'+(wall?2.8:3.2)+'"/></filter></defs>';
-  s+='<g fill="url(#'+key+')" filter="url(#'+key+'-blur)">';
-  if(wall)s+='<path d="M169 192L193 174 248 501 211 512Z"/><path d="M206 165L221 154 281 483 258 495Z"/>';
-  else s+='<path d="M'+x+' 585l48-10 72 130-57 12Z"/><path d="M'+(x+65)+' 579l22-5 72 128-25 7Z"/>';
-  return s+'</g></g>';
+/* Sunlight changes the existing materials, preserving their texture and silhouettes.
+   The unfiltered source is reused once; the ambient filter lives outside it. */
+function daylightRoom(s,id,P){
+  const objects=[];
+  s=s.replace(/<svg class="(furniture-viewport|bookcase-three)"[^>]*>/g,tag=>{
+    const attr=n=>tag.match(new RegExp('\\b'+n+'="([^"]+)"'))?.[1];
+    const key='sun-object-'+id+'-'+objects.length;
+    objects.push({key,name:attr('data-art')||'bookcase',x:+attr('x'),y:+attr('y'),w:+attr('width'),h:+attr('height')});
+    return tag.replace('>',' id="'+key+'">');
+  });
+  const dusk=P==='dusk',bounds='filterUnits="userSpaceOnUse" x="-200" y="-300" width="760" height="1340"';
+  const ambient=dusk?'.73 0 0 0 .055 0 .64 0 0 .035 0 0 .64 0 .025':'.78 0 0 0 .04 0 .73 0 0 .025 0 0 .72 0 .018';
+  const lit=dusk?'1 0 0 0 .12 0 .89 0 0 .09 0 0 .70 0 .05':'.98 0 0 0 .08 0 .94 0 0 .075 0 0 .84 0 .045';
+  let defs='<defs><filter id="room-shade-'+id+'" '+bounds+' color-interpolation-filters="sRGB"><feColorMatrix values="'+ambient+' 0 0 0 1 0"/></filter>'+
+    '<filter id="room-sunlit-'+id+'" '+bounds+' color-interpolation-filters="sRGB"><feColorMatrix values="'+lit+' 0 0 0 1 0"/></filter>'+
+    '<filter id="sun-edge-'+id+'" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.15"/></filter>'+
+    '<filter id="silhouette-black-'+id+'" color-interpolation-filters="sRGB"><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0"/></filter>'+
+    '<filter id="silhouette-white-'+id+'" color-interpolation-filters="sRGB"><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/></filter>'+
+    '<radialGradient id="window-bounce-'+id+'" gradientUnits="userSpaceOnUse" cx="110" cy="300" r="320"><stop stop-color="white" stop-opacity=".24"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>'+
+    '<linearGradient id="sun-strength-'+id+'" gradientUnits="userSpaceOnUse" x1="120" y1="235" x2="340" y2="760"><stop stop-color="white" stop-opacity=".92"/><stop offset="1" stop-color="white" stop-opacity=".72"/></linearGradient>'+
+    '<mask id="daylight-mask-'+id+'" maskUnits="userSpaceOnUse" x="-40" y="0" width="440" height="780" style="mask-type:luminance">'+daylightMask(id,objects)+'</mask></defs>';
+  return defs+'<g class="day-room" filter="url(#room-shade-'+id+')"><g id="room-materials-'+id+'">'+s+'</g></g>'+
+    '<g class="window-light" data-light="projected-window" pointer-events="none" aria-hidden="true" mask="url(#daylight-mask-'+id+')"><use href="#room-materials-'+id+'" filter="url(#room-sunlit-'+id+')" tabindex="-1"/></g>';
+}
+function daylightMask(id,objects){
+  // Keep each pane in one projection; the gaps are the window's two mullions.
+  const panes=(o,u,v)=>{
+    const point=(x,y)=>f(o[0]+u[0]*x+v[0]*y)+' '+f(o[1]+u[1]*x+v[1]*y);
+    let shapes='';
+    for(const [x0,x1] of [[0,.48],[.52,1]])for(const [y0,y1] of [[0,.48],[.52,1]])
+      shapes+='<path d="M'+point(x0,y0)+'L'+point(x1,y0)+' '+point(x1,y1)+' '+point(x0,y1)+'Z"/>';
+    return shapes;
+  };
+  const porthole='<path d="M52 2A52 52 0 0 1 2 52V2Z M-2 52A52 52 0 0 1-52 2H-2Z M-52-2A52 52 0 0 1-2-52V-2Z M2-52A52 52 0 0 1 52-2H2Z"/>';
+  const floorObjects=objects.filter(o=>['drawer-cabinet','continuous-desk','chair-backless','paper-basket','floor-plant','wooden-stool','bookcase','clothes-rail','attic-bed'].includes(o.name));
+  // Use the same illustrated silhouettes for occlusion and for cast shadows.
+  // All projections start at the object's feet and travel away from the window.
+  const cutouts=floorObjects.map(o=>'<use href="#'+o.key+'"/>').join('');
+  const shadows=floorObjects.map(o=>{
+    const base=o.y+o.h,dx=.64,dy=.43;
+    return '<use data-caster="'+o.name+'" href="#'+o.key+'" transform="matrix(1 0 '+(-dx)+' '+(-dy)+' '+f(dx*base)+' '+f((1+dy)*base)+')"/>';
+  }).join('');
+  let window='',wall='',floor='';
+  if(id==='c'){
+    window='<circle cx="101" cy="281" r="59"/>';
+    wall='<g mask="url(#sun-surfaces-'+id+')"><g transform="matrix(1.65 0 .8 .54 210 502)">'+porthole+'</g></g>';
+    floor='<g transform="matrix(1.8 0 1.15 .78 257 644)">'+porthole+'</g>';
+  }else{
+    const a=FURNITURE_ART['window-frame'],frame=furnitureLayout('window-frame',6,119,166,234,'top'),k=frame.w/a.box[2],g=a.glass;
+    window='<rect x="'+f(frame.x+(g[0]-a.box[0])*k)+'" y="'+f(frame.y+(g[1]-a.box[1])*k)+'" width="'+f(g[2]*k)+'" height="'+f(g[3]*k)+'" rx="1"/>';
+    const frameArt=objects.find(o=>o.name==='window-frame'),curtain=objects.find(o=>o.name==='curtain');
+    window+='<g filter="url(#silhouette-white-'+id+')"><use href="#'+frameArt.key+'"/>'+(curtain?'<use href="#'+curtain.key+'"/>':'')+'</g>';
+    wall=id==='a'?'<path d="M42 414L179 414 188 438 40 438Z M47 389L132 386 141 405 51 409Z M223 444H360V463H223Z"/>':'<path d="M-4 444H146L151 463H-4Z M190 194H360V214H190Z"/>';
+    floor=panes([-35,558],[186,-8],[300,202]);
+  }
+  const bed=objects.find(o=>o.name==='attic-bed');
+  const highlights=objects.filter(o=>['sleeping-cat','cabinet-vignette','desktop-vignette'].includes(o.name)).map(o=>'<use href="#'+o.key+'"/>').join('');
+  return '<defs>'+(bed?'<mask id="sun-surfaces-'+id+'" maskUnits="userSpaceOnUse" x="0" y="440" width="360" height="120" style="mask-type:luminance"><use href="#'+bed.key+'" filter="url(#silhouette-white-'+id+')"/></mask>':'')+'<mask id="floor-receivers-'+id+'" maskUnits="userSpaceOnUse" x="-40" y="540" width="440" height="250" style="mask-type:luminance"><rect x="-40" y="540" width="440" height="250" fill="white"/><g filter="url(#silhouette-black-'+id+')">'+cutouts+'</g></mask></defs>'+
+    '<rect x="-40" y="0" width="440" height="560" fill="url(#window-bounce-'+id+')"/><g fill="white" opacity=".72" filter="url(#sun-edge-'+id+')">'+window+'</g>'+
+    '<g fill="url(#sun-strength-'+id+')" filter="url(#sun-edge-'+id+')">'+wall+'</g><g filter="url(#silhouette-white-'+id+')" opacity=".4">'+highlights+'</g>'+
+    '<g mask="url(#floor-receivers-'+id+')"><g fill="url(#sun-strength-'+id+')" filter="url(#sun-edge-'+id+')">'+floor+'</g><g class="sun-cast-shadows" filter="url(#silhouette-black-'+id+')">'+shadows+'</g></g>';
 }
 
 function cozyRug(id,offset){
@@ -1331,12 +1383,12 @@ function continuousDesk(offset){
 function drawHomeImages(c,P,L){
   const art=(name,x,y,w,h,anchor)=>furnitureArt(name,x,y,w,h,'a',anchor);
   const cabinet=furnitureLayout('drawer-cabinet',36,398,152,214),cabinetSurface=cabinet.y+cabinet.h*(FURNITURE_ART['drawer-cabinet'].surface??.045),surface=deskSurface();
-  let s=cozyRoomBase('a')+windowLight('a',P,'wall');
+  let s=cozyRoomBase('a');
   s+=cozyWindow('a',P,L);
   s+='<path d="M272 -1600V119" stroke="#B9A58C" stroke-width="1.1"/>'+art('pendant-shade',246,118,52,35,'top');
   s+=furn('board','코르크보드')+'<rect class="tap" x="180" y="156" width="168" height="187"/>';
   s+=corkPanel(186,164,156,140,'a')+'<g transform="translate(0 -12)">'+drawBoardNotes()+'</g>'+pill(264,325,'코르크보드')+'</g>';
-  s+=cozyRug('a',0)+windowLight('a',P,'floor');
+  s+=cozyRug('a',0);
   s+=continuousDesk(0);
   s+=art('drawer-cabinet',36,398,152,214);
   // Hit areas follow the three white drawer fronts in the illustration.
@@ -1449,8 +1501,8 @@ function linenPocket(id){
 }
 function drawStudy(c,P,L){
   const art=(name,x,y,w,h,anchor)=>furnitureArt(name,x,y,w,h,'b',anchor),surface=deskSurface();
-  let s=cozyRoomBase('b')+windowLight('b',P,'wall')+openLoftCeiling('b')+hangingBulb('b',P,263,122,loftCeilingY(263)+6);
-  s+=cozyWindow('b',P,L,false)+cozyRug('b',360)+windowLight('b',P,'floor')+studyLadder();
+  let s=cozyRoomBase('b')+openLoftCeiling('b')+hangingBulb('b',P,263,122,loftCeilingY(263)+6);
+  s+=cozyWindow('b',P,L,false)+cozyRug('b',360)+studyLadder();
   s+=linenPocket('b');
   s+=continuousDesk(360);
 
@@ -1493,7 +1545,6 @@ function atticShelf(){return furnitureArt('attic-shelf',219,316,128,57,'c');}
 function drawAttic(c,P,L){
   let s='<g class="attic-interior" data-design="linen-reading-nook" data-period="'+P+'">'+cozyRoomBase('c')+openLoftCeiling('c',true);
   s+=atticWindow(P)+hangingBulb('c',P,270,293,loftCeilingY(270,true)+6)+atticShelf();
-  if(P!=='night')s+='<g class="attic-sunlight" filter="url(#soft-c)" fill="'+(P==='day'?'#FFF8E9':'#F9D8BE')+'" opacity=".22" pointer-events="none"><path d="M157 314 192 334 281 540 232 540Z"/><path d="M209 606h39l28 35h-40Z"/></g>';
   s+=furnitureArt('rug',15,595,292,76,'c','top');
   s+='<ellipse cx="232" cy="553" rx="116" ry="3.5" fill="#8C7458" opacity=".08"/>';
   s+=furnitureArt('attic-bed',104,453,247,101,'c');
