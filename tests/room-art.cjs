@@ -81,6 +81,24 @@ for (const {hour,time,expected} of times) for (const skin of ['beige', 'winter']
   assert.equal(rooms['#room'].includes('class="window-light"'),expected!=='night','day and dusk reflections remain visible');
   assert(!scenes['#room2'].curtain, 'right room has no curtain');
   assert(scenes['#room'].curtain, 'left curtain remains');
+  assert(!rooms['#room2'].includes('class="window-sill-plant"'), 'study sill stays clear');
+  assert(rooms['#room'].includes('class="window-sill-plant"'), 'main window keeps its plant');
+  const studyView=attrs(rooms['#room2'].match(/<image class="window-scenery"[^>]+>/)[0]).href;
+  const mainView=attrs(rooms['#room'].match(/<image class="window-scenery"[^>]+>/)[0]).href;
+  assert.notEqual(studyView,mainView,'different scenery for the two windows');
+  const studySky=fs.readFileSync(path.join(root,studyView),'utf8').split('<g transform=')[0];
+  assert(studySky.includes('data-celestial="none"'),'right view has no sun or moon');
+  assert(!studySky.includes('M265 112a35'),'right view has no moon silhouette');
+  for(const m of studySky.matchAll(/<circle[^>]+>/g))assert(+attrs(m[0]).r<10,'right sky contains stars only');
+  for(const room of ['#room2','#roomUp']){
+    const lamp=rooms[room].match(/<g class="loft-pendant"[\s\S]*?<\/g>/)[0];
+    const wire=lamp.match(/<path d="M([\d.-]+) ([\d.-]+)V/);
+    const edge=rooms[room].match(/class="continuous-roof-edge" data-depth="([\d.]+)"><path d="M([\d.-]+) ([\d.-]+)L([\d.-]+) ([\d.-]+)/);
+    assert(edge,'one connected ceiling edge');
+    const [depth,x0,y0,x1,y1]=edge.slice(1).map(Number),[x,y]=wire.slice(1).map(Number);
+    assert(x0<0&&x1>360,'beam ends remain outside the screen');
+    near(y,y0+(x-x0)*(y1-y0)/(x1-x0)+depth,'lamp cord meets the roof underside');
+  }
   assert(!scenes['#room2']['calendar-base'], 'calendar remains removed');
   assert(!rooms['#room2'].includes('class="wall-picture"'), 'standalone wall picture removed');
   assert(!rooms['#room2'].includes('assets/loft-reference-source.jpg'), 'closed triangular loft replaced');

@@ -849,7 +849,7 @@ function skinThumb(id){
 }
 function renderSettings(){
   if($('#settings').hidden)return;
-  $('#timeList').innerHTML=Object.entries(ROOM_TIMES).map(([id,label])=>'<button class="time-option" role="radio" aria-checked="'+(roomTime===id)+'" data-act="room-time" data-time="'+id+'">'+(id==='auto'?'<span class="time-auto" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l4 2.5"/></svg></span>':'<span aria-hidden="true" style="background-image:url(assets/room-v5/view-'+id+'.svg)"></span>')+'<b>'+label+'</b></button>').join('');
+  $('#timeList').innerHTML=Object.entries(ROOM_TIMES).map(([id,label])=>'<button class="time-option" role="radio" aria-checked="'+(roomTime===id)+'" data-act="room-time" data-time="'+id+'">'+(id==='auto'?'<span class="time-auto" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l4 2.5"/></svg></span>':'<span aria-hidden="true" style="background-image:url(assets/room-v6/view-'+id+'.svg)"></span>')+'<b>'+label+'</b></button>').join('');
   $('#skinList').innerHTML=Object.keys(SKINS).map(id=>{const k=SKINS[id],on=id===skin;
     return '<button class="skin'+(on?' on':'')+'" role="radio" aria-checked="'+on+'" data-act="skin" data-skin="'+id+'">'+skinThumb(id)+'<b>'+esc(k.name)+'</b><span class="sw">'+k.sw.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span></button>'}).join('');
   $('#acctWrap').hidden=mode!=='cloud';$('#acctEmail').textContent=myEmail?myEmail+' 계정으로 쓰는 중':'';
@@ -1066,7 +1066,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='35';
+const APP_VERSION='36';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1184,7 +1184,7 @@ function crumple(cx,cy,r,seed){
 
 /* Shared materials and room geometry keep both swipe pages in the same room. */
 function cozyDefs(id){
-  const mood={day:['#E9E0D3','#E4D9C8','#DECBAF','#D8C2A3'],dusk:['#E8D7C4','#E0CCB4','#DDC3A5','#D5B997'],night:['#B8AA97','#AFA08C','#BBA487','#AD9579']}[period()];
+  const mood={day:['#E2D7C8','#DED1BF','#DECBAF','#D8C2A3'],dusk:['#E6D8C8','#DFCEB9','#DCC5A9','#D4BB9C'],night:['#B8AA97','#AFA08C','#BBA487','#AD9579']}[period()];
   const pastel=(name,k,sat)=>{
     const lum=[.2126,.7152,.0722],cream=[.965,.925,.863],m=[];
     for(let row=0;row<3;row++)m.push(...lum.map((v,col)=>k*((row===col?sat:0)+(1-sat)*v)),0,(1-k)*cream[row]);
@@ -1272,14 +1272,14 @@ function cozyCurtain(id){
 }
 function cozyWindow(id,P,L,curtain=true){
   const a=FURNITURE_ART['window-frame'],frame=furnitureLayout('window-frame',6,119,166,234,'top'),k=frame.w/a.box[2],g=a.glass;
-  const x=frame.x+(g[0]-a.box[0])*k,y=frame.y+(g[1]-a.box[1])*k,w=g[2]*k,h=g[3]*k,clip='window-glass-'+id,view={src:'assets/room-v5/view-'+P+'.svg'};
+  const x=frame.x+(g[0]-a.box[0])*k,y=frame.y+(g[1]-a.box[1])*k,w=g[2]*k,h=g[3]*k,clip='window-glass-'+id,view={src:'assets/room-v6/'+(id==='b'?'study-':'view-')+P+'.svg'};
   let s='<defs><clipPath id="'+clip+'"><rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" rx="1"/></clipPath></defs>'+
     '<image class="window-scenery" data-period="'+P+'" href="'+view.src+'" x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#'+clip+')"/>';
   if(P!=='night')s+='<g class="glass-reflection" clip-path="url(#'+clip+')" stroke="#FFFCF5" fill="none" stroke-linecap="round" opacity="'+(P==='day'?.32:.4)+'"><path d="M'+f(x+w*.87)+' '+f(y+h*.07)+' '+f(x+w*.62)+' '+f(y+h*.28)+'" stroke-width="3.6"/><path d="M'+f(x+w*.96)+' '+f(y+h*.13)+' '+f(x+w*.76)+' '+f(y+h*.3)+'" stroke-width="1.6"/><path d="M'+f(x+w*.25)+' '+f(y+h*.57)+' '+f(x+w*.02)+' '+f(y+h*.79)+'" stroke-width="2.7"/></g>';
   s+=furnitureArt('window-frame',frame.x,frame.y,frame.w,frame.h,id,'top');
   const px=frame.x+frame.w*.82,base=frame.y+frame.h-5;
-  s+=leaf(px,base-11,px-8,base-29,4,'#93AC95')+leaf(px,base-11,px+9,base-31,4.5,'#7F9A84')+leaf(px,base-11,px+1,base-36,4,'#A7BDA6')+
-    '<path d="M'+f(px-7.5)+' '+f(base)+'h15l-2-12h-11Z" fill="#E4D3BE"/>';
+  if(id!=='b')s+='<g class="window-sill-plant" pointer-events="none">'+leaf(px,base-11,px-8,base-29,4,'#93AC95')+leaf(px,base-11,px+9,base-31,4.5,'#7F9A84')+leaf(px,base-11,px+1,base-36,4,'#A7BDA6')+
+    '<path d="M'+f(px-7.5)+' '+f(base)+'h15l-2-12h-11Z" fill="#E4D3BE"/></g>';
   return s+(curtain?cozyCurtain(id):'');
 }
 
@@ -1362,7 +1362,7 @@ function drawHomeImages(c,P,L){
     s+='<defs><clipPath id="basket-front-a"><path d="'+front+'"/></clipPath></defs><g class="basket-front" clip-path="url(#basket-front-a)">'+art('paper-basket',194,557,36,47)+'</g>';
   }
   s+=pill(212,620,'쓰레기통')+'</g>';
-  s+=art('floor-plant',-14,366,78,250);
+  s+=art('floor-plant',-19,366,78,250);
   return s;
 }
 function renderRoom(){
@@ -1396,22 +1396,25 @@ function loftGeometry(){
   return {x,y,w,h:a.box[3]*k,rail:y+(a.rail-a.box[1])*k,floor,left:334,right:368,labelY:258};
 }
 // The ceiling and platform continue beyond the viewport; this is an open upper floor.
+function loftCeilingY(x,inside=false){
+  return inside?-20+(x-92)*206/288:-20+(x-157)*163/223;
+}
 function openLoftCeiling(id,inside=false){
-  const edge=inside?'M92 -20 380 186':'M157 -20 380 143';
-  const plane=inside?'M92 -20H380V186Z':'M157 -20H380V143Z';
-  const timber={day:['#D3B591','#D2B08B'],dusk:['#D7B28D','#D6AF8B'],night:['#B29B7B','#BCA385']}[period()];
+  // Both ends of every plank and edge beam finish outside the viewport.
+  const x0=-160,x1=560,y0=loftCeilingY(x0,inside),y1=loftCeilingY(x1,inside);
+  const plane='M'+x0+' -320H'+x1+'V'+f(y1)+'L'+x0+' '+f(y0)+'Z';
+  const timber={day:['#D3B591','#D2B08B'],dusk:['#D5B591','#D4B28F'],night:['#B29B7B','#BCA385']}[period()];
   let s='<g class="open-loft-ceiling" data-structure="open-mezzanine" pointer-events="none"><defs><clipPath id="ceiling-clip-'+id+'"><path d="'+plane+'"/></clipPath><linearGradient id="ceiling-oak-'+id+'" x2=".5" y2="1"><stop stop-color="'+timber[0]+'"/><stop offset="1" stop-color="'+timber[1]+'"/></linearGradient></defs>';
-  s+='<path d="'+plane+'" fill="url(#ceiling-oak-'+id+')"/><g clip-path="url(#ceiling-clip-'+id+')"><g transform="rotate(35 220 50)"><rect x="-100" y="-200" width="700" height="600" fill="url(#grain-'+id+')" opacity=".28"/></g></g><g clip-path="url(#ceiling-clip-'+id+')" stroke="#B39777" stroke-width=".55" opacity=".21">';
-  for(let y=-160;y<180;y+=23)s+='<path d="M100 '+y+' 400 '+(y+211)+'"/>';
-  s+='</g><path d="'+edge+'" fill="none" stroke="#E6D8C2" stroke-width="3"/>';
-  s+='<path d="M212 44 301 -14H329L212 62Z" fill="#C2A07D"/><path d="M212 44 318 -19" stroke="#DCC1A2" stroke-width="2"/>';
-  return s+'</g>';
+  s+='<path d="'+plane+'" fill="url(#ceiling-oak-'+id+')"/><g clip-path="url(#ceiling-clip-'+id+')"><g transform="rotate(35 220 50)"><rect x="-300" y="-500" width="1100" height="1000" fill="url(#grain-'+id+')" opacity=".28"/></g><g fill="none" stroke="#B39777" stroke-width=".55" opacity=".21">';
+  for(let y=-540;y<260;y+=23)s+='<path d="M-200 '+y+' 600 '+f(y+800*.72)+'"/>';
+  s+='</g></g><g class="continuous-roof-edge" data-depth="6"><path d="M'+x0+' '+f(y0)+'L'+x1+' '+f(y1)+'v6L'+x0+' '+f(y0+6)+'Z" fill="#C2A07D"/><path d="M'+x0+' '+f(y0)+'L'+x1+' '+f(y1)+'" stroke="#E6D8C2" stroke-width="2.2" fill="none"/></g></g>';
+  return s;
 }
 function hangingBulb(id,P,x,y,top){
   const lit=P!=='day';
   let s='<g class="loft-pendant" data-lit="'+lit+'" pointer-events="none">';
   if(lit)s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+(id==='c'?68:44)+'" ry="'+(id==='c'?82:58)+'" fill="url(#warm-'+id+')" opacity="'+(P==='night'?.52:.23)+'"/>';
-  s+='<path d="M'+x+' '+top+'V'+(y-9)+'" stroke="#927959" stroke-width=".9"/><ellipse cx="'+x+'" cy="'+top+'" rx="2" ry="1" fill="#A38762"/><rect x="'+(x-3.2)+'" y="'+(y-11)+'" width="6.4" height="6" rx="2" fill="#B69872"/><ellipse '+(lit?'':'class="loft-day-lamp" ')+'cx="'+x+'" cy="'+y+'" rx="6" ry="7.5" fill="'+(lit?'#FFE9B2':'#E1D5BE')+'"/><path d="M'+(x-2)+' '+(y+1)+'q2 2 4 0" fill="none" stroke="'+(lit?'#F3D596':'#CABB9E')+'" stroke-width=".6"/></g>';
+  s+='<path d="M'+x+' '+f(top)+'V'+(y-9)+'" stroke="#927959" stroke-width=".9"/><ellipse cx="'+x+'" cy="'+f(top)+'" rx="2" ry="1" fill="#A38762"/><rect x="'+(x-3.2)+'" y="'+(y-11)+'" width="6.4" height="6" rx="2" fill="#B69872"/><ellipse '+(lit?'':'class="loft-day-lamp" ')+'cx="'+x+'" cy="'+y+'" rx="6" ry="7.5" fill="'+(lit?'#FFE9B2':'#E1D5BE')+'"/><path d="M'+(x-2)+' '+(y+1)+'q2 2 4 0" fill="none" stroke="'+(lit?'#F3D596':'#CABB9E')+'" stroke-width=".6"/></g>';
   return s;
 }
 function studyLadder(){
@@ -1429,7 +1432,7 @@ function threeTierBookcase(){
 }
 function drawStudy(c,P,L){
   const art=(name,x,y,w,h,anchor)=>furnitureArt(name,x,y,w,h,'b',anchor),surface=deskSurface();
-  let s=cozyRoomBase('b')+windowLight('b',P,'wall')+openLoftCeiling('b')+hangingBulb('b',P,261,123,57);
+  let s=cozyRoomBase('b')+windowLight('b',P,'wall')+openLoftCeiling('b')+hangingBulb('b',P,264,123,loftCeilingY(264)+6);
   s+=cozyWindow('b',P,L,false)+cozyRug('b',360)+windowLight('b',P,'floor')+studyLadder();
   s+=continuousDesk(360);
 
@@ -1463,7 +1466,7 @@ function atticWindow(P){
   const x=101,y=281,r=58;
   let s='<g class="attic-window" pointer-events="none"><defs><clipPath id="attic-glass-c"><circle cx="'+x+'" cy="'+y+'" r="'+(r-6)+'"/></clipPath></defs>';
   s+='<circle cx="'+x+'" cy="'+(y+2)+'" r="'+(r+2)+'" fill="#C6AD8A"/><circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#F5EDE0"/>';
-  s+='<image href="assets/room-v5/view-'+P+'.svg" x="'+(x-r+6)+'" y="'+(y-r+6)+'" width="'+((r-6)*2)+'" height="'+((r-6)*2)+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#attic-glass-c)"/>';
+  s+='<image href="assets/room-v6/view-'+P+'.svg" x="'+(x-r+6)+'" y="'+(y-r+6)+'" width="'+((r-6)*2)+'" height="'+((r-6)*2)+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#attic-glass-c)"/>';
   s+='<g clip-path="url(#attic-glass-c)"><path d="M'+x+' '+(y-r)+'v'+(r*2)+'M'+(x-r)+' '+y+'h'+(r*2)+'" stroke="#F5EDE0" stroke-width="4.5"/>';
   if(P!=='night')s+='<path d="M128 241 111 261M138 250 126 264" stroke="#FFFCF3" stroke-width="2.4" stroke-linecap="round" opacity=".4"/>';
   return s+'</g><circle cx="'+x+'" cy="'+y+'" r="'+(r-3)+'" stroke="#FFF9EF" stroke-width="1" fill="none" opacity=".6"/></g>';
@@ -1478,7 +1481,7 @@ function atticShelf(){
 }
 function drawAttic(c,P,L){
   let s='<g class="attic-interior" data-design="linen-reading-nook" data-period="'+P+'">'+cozyRoomBase('c')+openLoftCeiling('c',true);
-  s+=atticWindow(P)+hangingBulb('c',P,267,293,107)+atticShelf();
+  s+=atticWindow(P)+hangingBulb('c',P,270,293,loftCeilingY(270,true)+6)+atticShelf();
   if(P!=='night')s+='<g class="attic-sunlight" fill="'+(P==='day'?'#FFF8E9':'#F9D8BE')+'" opacity=".4" pointer-events="none"><path d="M157 314 192 334 281 540 232 540Z"/><path d="M209 606h39l28 35h-40Z"/></g>';
   s+=furnitureArt('rug',15,595,292,76,'c','top');
   s+='<ellipse cx="232" cy="553" rx="116" ry="3.5" fill="#8C7458" opacity=".08"/>';
