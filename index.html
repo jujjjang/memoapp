@@ -349,10 +349,10 @@ h1{font-family:var(--font-title);font-weight:700;font-size:30px;line-height:1.1;
   background-color:#FBF7EF;background-image:linear-gradient(transparent 31px,#F1E8DA 31px);background-size:100% 32px;
   box-shadow:inset 10px 0 0 -2px #C48B74,inset 14px 0 10px -8px rgba(0,0,0,.2),0 18px 30px -24px var(--shadow)}
 .scraps{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:calc((100% - 12px)/2);gap:16px 12px;
-  overflow-x:auto;scroll-snap-type:x proximity;padding:10px 2px 10px;scrollbar-width:thin}
+  overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scroll-snap-type:none;padding:10px 2px 10px;scrollbar-width:thin}
 @media (min-width:560px){.scraps{grid-auto-columns:calc((100% - 24px)/3)}}
 .scrap{position:relative;display:flex;flex-direction:column;gap:6px;height:112px;min-width:0;padding:15px 12px 9px;border:0;text-align:left;background:var(--sc);color:#3A332D;
-  border-radius:2px;transform:rotate(var(--r,0deg));box-shadow:0 6px 10px -7px rgba(70,50,30,.45);scroll-snap-align:start}
+  border-radius:2px;transform:rotate(var(--r,0deg));box-shadow:0 6px 10px -7px rgba(70,50,30,.45)}
 .sc-tape{position:absolute;top:-6px;left:50%;width:34px;height:12px;margin-left:-17px;background:var(--tc);opacity:.9;transform:rotate(-3deg)}
 .sc-text{flex:1;min-height:0;font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .sc-date{font-size:11px;color:#8A7D70}
@@ -1066,7 +1066,7 @@ function authErr(e){
   if(/fetch|network|failed to/i.test(m))return '인터넷 연결을 확인해 주세요.';
   return '잘 안 됐어요. ('+m+')';
 }
-const APP_VERSION='36';
+const APP_VERSION='37';
 async function checkUpdate(){
   try{
     const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -1582,7 +1582,7 @@ function scrapHTML(){
         '<span class="sc-tape" aria-hidden="true"></span><span class="sc-text">'+esc(txt||'빈 종이')+'</span><span class="sc-date">'+esc(fmtDate(d.updated||d.created))+'</span></button>'}
     return ph.map((p,k)=>{tiles++;const r=(((hs+k*3)%5)-2)*.6;
       return '<button class="scrap ph" aria-label="'+esc('사진 '+(ph.length>1?(k+1)+'/'+ph.length:'')+(txt?' · '+txt:'')+' 크게 보기')+'" style="--r:'+r+'deg" data-act="scrap-view" data-id="'+d.id+'" data-k="'+k+'" data-drag-id="'+d.id+'">'+
-        '<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(txt&&k===0?'<span class="sc-note" aria-hidden="true"></span>':'')+'</span></button>'}).join('')}).join('');
+        '<span class="sc-photo"><img src="'+esc(srcOf(p))+'" data-p="'+esc(p)+'" alt="" draggable="false" loading="lazy" decoding="async"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>'+(txt&&k===0?'<span class="sc-note" aria-hidden="true"></span>':'')+'</span></button>'}).join('')}).join('');
   h+='<button class="scrap add" data-act="scrap-new">+ 끼워넣기</button></div></div>';
   h+='<p class="hint">'+(tiles>3?'옆으로 넘겨 보세요 · ':'')+'고른 책갈피를 한 번 더 누르면 주제 이름을 바꿀 수 있어요</p>';
   return h;
@@ -2293,9 +2293,10 @@ function toast(msg,label,fn){
 
 /* ================= press and hold a memo, then drop it on furniture in the room ================= */
 const drag={timer:0,id:null,on:false,x:0,y:0,lx:0,ly:0,ghost:null,hot:null,justEnded:false};
+function preventCarryScroll(e){if(drag.on&&e.cancelable)e.preventDefault()}
 function startDrag(){
   drag.timer=0;const d=get(drag.id);if(!d)return;
-  drag.on=true;drag.sx=drag.lx;drag.sy=drag.ly;carryShowMain();
+  drag.on=true;document.addEventListener('touchmove',preventCarryScroll,{passive:false});drag.sx=drag.lx;drag.sy=drag.ly;carryShowMain();
   try{const sel=window.getSelection();if(sel)sel.removeAllRanges()}catch(e){}
   const ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur();
   const g=document.createElement('div');g.className='drag-ghost';
@@ -2322,6 +2323,7 @@ function moveDrag(x,y){
   if(go!==drag.hot){if(drag.hot)drag.hot.classList.remove('hot');drag.hot=go;if(go)go.classList.add('hot')}
 }
 function endDrag(drop){
+  document.removeEventListener('touchmove',preventCarryScroll);
   const hot=drag.hot,id=drag.id;
   if(drag.ghost)drag.ghost.remove();if(hot)hot.classList.remove('hot');
   document.body.classList.remove('carrying');$('#dragHint').hidden=true;
@@ -2352,7 +2354,6 @@ document.addEventListener('pointermove',e=>{
 },{passive:true});
 document.addEventListener('pointerup',()=>{clearTimeout(drag.timer);drag.timer=0;if(drag.on)endDrag(true)});
 document.addEventListener('pointercancel',()=>{clearTimeout(drag.timer);drag.timer=0;if(drag.on)endDrag(false)});
-document.addEventListener('touchmove',e=>{if(drag.on)e.preventDefault()},{passive:false});
 document.addEventListener('contextmenu',e=>{if(drag.on||drag.timer||e.target.closest('[data-drag-id]'))e.preventDefault()});
 document.addEventListener('selectstart',e=>{if(drag.on||drag.timer)e.preventDefault()});
 document.addEventListener('dragstart',e=>{if(drag.on||drag.timer||(e.target.closest&&e.target.closest('[data-drag-id]')))e.preventDefault()});
